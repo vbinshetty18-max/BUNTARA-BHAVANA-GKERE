@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MapPin,
   Phone,
@@ -24,7 +24,9 @@ import {
   Wind,
   Landmark,
   UserRound,
-  LogOut
+  LogOut,
+  Maximize2,
+  ExternalLink
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
@@ -38,6 +40,8 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 const HALLS_DATA = [
   {
     id: 'malady-tunga',
+    hallNumber: 1,
+    hallTag: 'Hall 1',
     name: 'MALADY TUNGA AND MUNDAPPA SHETTY VEDIKE',
     category: 'AC HALL',
     price: 75000,
@@ -75,6 +79,8 @@ const HALLS_DATA = [
   },
   {
     id: 'kaashi-shetty',
+    hallNumber: 2,
+    hallTag: 'Hall 2',
     name: 'KAASHI SHETTY VEDIKE',
     category: 'NON-AC HALL',
     price: 35000,
@@ -140,6 +146,8 @@ const HALLS_DATA = [
   },
   {
     id: 'arvaguthu-mini',
+    hallNumber: 3,
+    hallTag: 'Hall 3',
     name: 'ARVAGUTHU K. NARAYANA RAI VEDIKE',
     category: 'MINI HALL',
     price: 12000,
@@ -175,52 +183,32 @@ const HALLS_DATA = [
   }
 ];
 
-// Hero Slide Variations (Strictly anchored to the 1st pic: main pic.jpg)
-const HERO_SLIDES = [
+// Default Verified Supabase Storage Photographs for Hero Slideshow
+const DEFAULT_HERO_SLIDES = [
   {
     id: 0,
-    kicker: 'TRADITION • CULTURE • CELEBRATION',
-    title: 'BUNTARA BHAVANA',
-    location: 'GURUVAYANKERE',
-    tagline: '"A Beautiful Place for Celebrations, Gatherings & Memories."',
-    // 1st pic: Home page exterior photograph (main pic.jpg)
-    image: './main%20pic.jpg',
-    fallbackImages: [
-      'main pic.jpg',
-      '/main pic.jpg',
-      '/assets/images/main pic.jpg',
-      '/assets/images/buntara-exterior.jpg'
-    ]
+    title: 'Buntara Bhavana Front Exterior View',
+    image: 'https://mmmaheyictnnmjnbvtrj.supabase.co/storage/v1/object/public/venue-gallery/hero/slide-1-c21f8b6e-007e-47c4-b860-801dcbf7187e-WhatsApp_Image_2026-11-12_at_3.23.30_PM__1__-_Copy_-_Copy.jpeg',
+    fallbackImages: ['/main pic.jpg', './main%20pic.jpg'],
+    variant: 'exterior'
   },
   {
     id: 1,
-    kicker: 'TULUNADU HERITAGE • SACRED HOSPITALITY',
-    title: 'BUNTARA BHAVANA',
-    location: 'GURUVAYANKERE',
-    tagline: '"Where Timeless Cultural Values Meet Grand Auspicious Occasions."',
-    image: './main%20pic.jpg',
-    fallbackImages: [
-      'main pic.jpg',
-      '/main pic.jpg',
-      '/assets/images/main pic.jpg',
-      '/assets/images/buntara-exterior.jpg'
-    ]
+    title: 'Malady Tunga Vedike Grand AC Banquet Hall',
+    image: 'https://mmmaheyictnnmjnbvtrj.supabase.co/storage/v1/object/public/venue-gallery/hero/slide-2-eeeeca3e-4660-4382-a5fb-f61e01a97357-WhatsApp_Image_2026-11-12_at_3.23.59_PM.jpeg',
+    fallbackImages: ['/malady.jpg', './malady.jpg'],
+    variant: 'malady-tunga'
   },
   {
     id: 2,
-    kicker: 'THREE DISTINCTIVE SPACES • ONE DESTINATION',
-    title: 'BUNTARA BHAVANA',
-    location: 'GURUVAYANKERE',
-    tagline: '"Honoring Every Milestone with Grace, Warmth & Tradition."',
-    image: './main%20pic.jpg',
-    fallbackImages: [
-      'main pic.jpg',
-      '/main pic.jpg',
-      '/assets/images/main pic.jpg',
-      '/assets/images/buntara-exterior.jpg'
-    ]
+    title: 'Kaashi Shetty Vedike & Cultural Banquet Dining',
+    image: 'https://mmmaheyictnnmjnbvtrj.supabase.co/storage/v1/object/public/venue-gallery/hero/slide-3-9f8928df-30e9-461b-96bb-1c33a09b3c8b-WhatsApp_Image_2026-11-12_at_3.24.31_PM.jpeg',
+    fallbackImages: ['/kaashi hall.jpg', './kaashi%20hall.jpg'],
+    variant: 'kaashi-shetty'
   }
 ];
+
+const HERO_SLIDES = DEFAULT_HERO_SLIDES;
 
 // Custom Resilient Venue Image Component:
 // Tries exact uploaded filename, URL-encoded path, /assets/images/ path, custom uploaded blob,
@@ -471,6 +459,105 @@ const NilavilakkuLampSVG = ({ className = 'w-14 h-36' }) => (
   </svg>
 );
 
+// High-Contrast Traditional Indian Brass Oil Lamp (Nilavilakku / Deepa) with Warm Glowing Flame
+const TraditionalDeepaLamp = ({ className = 'w-16 h-60', flip = false }) => (
+  <svg
+    viewBox="0 0 100 260"
+    className={`${className} ${flip ? 'scale-x-[-1]' : ''}`}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <defs>
+      {/* Radiant Brass Gradients for High Visual Contrast */}
+      <linearGradient id="deepaBrassGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#8C5310" />
+        <stop offset="20%" stopColor="#E2A638" />
+        <stop offset="45%" stopColor="#FFF2A3" />
+        <stop offset="70%" stopColor="#D49A2B" />
+        <stop offset="100%" stopColor="#6E3D06" />
+      </linearGradient>
+      <linearGradient id="deepaBrassDark" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#4D2A04" />
+        <stop offset="50%" stopColor="#9C6B1B" />
+        <stop offset="100%" stopColor="#3B1E02" />
+      </linearGradient>
+
+      {/* Warm Golden Flame Halos */}
+      <radialGradient id="deepaFlameHalo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#FFFEE8" stopOpacity="1" />
+        <stop offset="35%" stopColor="#FBBF24" stopOpacity="0.85" />
+        <stop offset="70%" stopColor="#F97316" stopOpacity="0.5" />
+        <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
+      </radialGradient>
+      <radialGradient id="deepaWideGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.5" />
+        <stop offset="55%" stopColor="#D97706" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    {/* Ambient Wide Glow behind flame */}
+    <circle cx="50" cy="32" r="30" fill="url(#deepaWideGlow)" />
+    {/* Inner Vivid Flame Halo */}
+    <circle cx="50" cy="32" r="22" fill="url(#deepaFlameHalo)" />
+
+    {/* Sacred Flame Teardrop Layers */}
+    <path
+      d="M50 12C50 12 59 24 59 33C59 38 55 42 50 42C45 42 41 38 41 33C41 24 50 12 50 12Z"
+      fill="#FDE047"
+    />
+    <path
+      d="M50 17C50 17 56 25 56 32C56 36 53.5 39 50 39C46.5 39 44 36 44 32C44 25 50 17 50 17Z"
+      fill="#FFFBEB"
+    />
+    <path
+      d="M50 22C50 22 53.5 27 53.5 31.5C53.5 34 52 36 50 36C48 36 46.5 34 46.5 31.5C46.5 27 50 22 50 22Z"
+      fill="#FFFFFF"
+    />
+
+    {/* Top Prabha / Crown Finial */}
+    <path d="M50 38L54 48H46L50 38Z" fill="url(#deepaBrassGrad)" />
+    <circle cx="50" cy="51" r="4.5" fill="url(#deepaBrassGrad)" />
+
+    {/* Traditional Oil Reservoir Bowl (Thoni / Agal) */}
+    <path
+      d="M20 57C26 68 74 68 80 57C72 61 28 61 20 57Z"
+      fill="url(#deepaBrassGrad)"
+    />
+    <ellipse cx="50" cy="57" rx="28" ry="4.5" fill="#6E3D06" />
+    <ellipse cx="50" cy="56" rx="26" ry="3.5" fill="url(#deepaBrassGrad)" />
+    {/* Decorative Beads under Bowl */}
+    <circle cx="35" cy="63" r="2.5" fill="url(#deepaBrassGrad)" />
+    <circle cx="50" cy="64" r="3" fill="url(#deepaBrassGrad)" />
+    <circle cx="65" cy="63" r="2.5" fill="url(#deepaBrassGrad)" />
+
+    {/* Central Pillar Stem with Multiple Traditional Kalasha Rings */}
+    <ellipse cx="50" cy="72" rx="12" ry="4" fill="url(#deepaBrassGrad)" />
+    <rect x="46" y="74" width="8" height="28" fill="url(#deepaBrassGrad)" />
+    {/* Kalasha Bulb 1 */}
+    <ellipse cx="50" cy="104" rx="14" ry="7" fill="url(#deepaBrassGrad)" />
+    <ellipse cx="50" cy="111" rx="11" ry="3" fill="url(#deepaBrassDark)" />
+
+    {/* Middle Stem */}
+    <rect x="46.5" y="113" width="7" height="34" fill="url(#deepaBrassGrad)" />
+    {/* Kalasha Bulb 2 */}
+    <ellipse cx="50" cy="149" rx="15" ry="7.5" fill="url(#deepaBrassGrad)" />
+    <ellipse cx="50" cy="157" rx="12" ry="3.5" fill="url(#deepaBrassDark)" />
+
+    {/* Lower Stem */}
+    <rect x="46" y="159" width="8" height="36" fill="url(#deepaBrassGrad)" />
+    <ellipse cx="50" cy="197" rx="16" ry="4" fill="url(#deepaBrassGrad)" />
+
+    {/* Tiered Pedestal Base */}
+    <path d="M32 201H68L74 216H26L32 201Z" fill="url(#deepaBrassGrad)" />
+    <path d="M22 216H78L84 234H16L22 216Z" fill="url(#deepaBrassDark)" />
+    <path d="M14 234H86L90 248H10L14 234Z" fill="url(#deepaBrassGrad)" />
+    <rect x="6" y="248" width="88" height="8" rx="3" fill="#4D2A04" />
+    <rect x="10" y="249" width="80" height="3" rx="1.5" fill="url(#deepaBrassGrad)" />
+  </svg>
+);
+
 // Custom SVG: Antique Gold Ornamental Section Divider
 const GoldOrnamentalDivider = ({ flip = false }) => (
   <svg
@@ -563,6 +650,8 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+  const [entryPopUpOpen, setEntryPopUpOpen] = useState(false);
+  const [activeLightboxImage, setActiveLightboxImage] = useState(null);
   const [selectedHallForDetails, setSelectedHallForDetails] = useState(null);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [activeInfoModal, setActiveInfoModal] = useState(null); // 'about' | 'facilities' | 'gallery' | 'events' | 'contact' | null
@@ -579,7 +668,7 @@ export default function App() {
     eventsTitle: 'Auspicious Celebrations Hosted at Buntara Bhavana',
     contactAddress: 'Guruvayankere, Belthangady Taluk, Dakshina Kannada District, Karnataka',
     contactPhone: '+91 8256 232 456',
-    contactEmail: 'office@buntarabhavanaguruvayankere.in',
+    contactEmail: 'buntarabhavanagkere@gmail.com',
     officeHours: '9:30 AM – 6:00 PM',
     events: [
       { title: 'Traditional Weddings & Receptions', desc: 'Grand Tulunadu and South Indian wedding ceremonies hosted with timeless elegance.' },
@@ -836,18 +925,47 @@ export default function App() {
       if (!active) return;
       const mappedHalls = (hallResult.data || []).map((hall) => {
         const fallback = HALLS_DATA.find((item) => item.id === hall.id) || {};
+        const hallNumber = hall.id === 'malady-tunga' ? 1 : hall.id === 'kaashi-shetty' ? 2 : 3;
+        const hallTag = `Hall ${hallNumber}`;
+
+        // Live database highlights from direct column or details JSONB
+        const dbHighlights = Array.isArray(hall.highlights) && hall.highlights.length > 0
+          ? hall.highlights
+          : (Array.isArray(hall.details?.highlights) && hall.details.highlights.length > 0
+              ? hall.details.highlights
+              : null);
+
+        // Live database suitable events from direct column or details JSONB
+        const dbSuitableEvents = Array.isArray(hall.suitable_events) && hall.suitable_events.length > 0
+          ? hall.suitable_events
+          : (Array.isArray(hall.suitableEvents) && hall.suitableEvents.length > 0
+              ? hall.suitableEvents
+              : (Array.isArray(hall.details?.suitableEvents) && hall.details.suitableEvents.length > 0
+                  ? hall.details.suitableEvents
+                  : (Array.isArray(hall.details?.suitable_events) && hall.details.suitable_events.length > 0
+                      ? hall.details.suitable_events
+                      : null)));
+
         return {
           ...fallback,
           ...hall,
+          hallNumber,
+          hallTag,
           formattedPrice: `₹${Number(hall.price).toLocaleString('en-IN')}`,
           image: hall.image_url || fallback.image,
           timings: hall.details?.timings || fallback.timings,
-          highlights: hall.details?.highlights || fallback.highlights || [],
-          suitableEvents: hall.details?.suitableEvents || fallback.suitableEvents || [],
+          highlights: dbHighlights !== null ? dbHighlights : (fallback.highlights || []),
+          suitableEvents: dbSuitableEvents !== null ? dbSuitableEvents : (fallback.suitableEvents || []),
           structuredFacilities: hall.details?.structuredFacilities || fallback.structuredFacilities || []
         };
-      });
+      }).sort((a, b) => a.hallNumber - b.hallNumber);
+
       setHallsData(mappedHalls);
+      setSelectedHallForDetails((current: any) => {
+        if (!current) return null;
+        const fresh = mappedHalls.find((h) => h.id === current.id);
+        return fresh || current;
+      });
       if (contentResult.data?.content) {
         const savedContent = contentResult.data.content;
         setSiteContent((current) => ({ ...current, ...savedContent }));
@@ -880,7 +998,8 @@ export default function App() {
       setApprovedBookings((approvedResult.data || []).map((booking) => ({
         hallId: booking.hall_id,
         date: booking.event_date,
-        session: booking.session
+        session: booking.session,
+        status: booking.status || 'approved'
       })));
 
       if (!currentUser) {
@@ -902,8 +1021,37 @@ export default function App() {
     };
 
     void loadSiteData();
+
+    // Auto-refresh when tab is focused or returns from background
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void loadSiteData();
+      }
+    };
+    window.addEventListener('focus', handleFocusOrVisible);
+    document.addEventListener('visibilitychange', handleFocusOrVisible);
+
+    // Live realtime subscription to venue_halls changes
+    const hallsSubscription = supabase
+      ? supabase
+          .channel('public:venue_halls')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'venue_halls' },
+            () => {
+              void loadSiteData();
+            }
+          )
+          .subscribe()
+      : null;
+
     return () => {
       active = false;
+      window.removeEventListener('focus', handleFocusOrVisible);
+      document.removeEventListener('visibilitychange', handleFocusOrVisible);
+      if (hallsSubscription && supabase) {
+        supabase.removeChannel(hallsSubscription);
+      }
     };
   }, [currentUser]);
 
@@ -980,6 +1128,37 @@ export default function App() {
   });
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccessData, setBookingSuccessData] = useState(null);
+  const [toast, setToast] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  // Ref and date picker helper for 100% reliable click-to-open calendar popup
+  const bookingDateInputRef = useRef(null);
+  const todayDateString = (() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  })();
+
+  const handleOpenDatePicker = () => {
+    if (bookingDateInputRef.current) {
+      try {
+        if (typeof bookingDateInputRef.current.showPicker === 'function') {
+          bookingDateInputRef.current.showPicker();
+        } else {
+          bookingDateInputRef.current.focus();
+        }
+      } catch {
+        bookingDateInputRef.current.focus();
+      }
+    }
+  };
 
   // Inject Google Fonts for authentic South Indian luxury serif typography
   useEffect(() => {
@@ -993,12 +1172,20 @@ export default function App() {
     };
   }, []);
 
-  // Subtle auto-advance for hero indicators
+  // Automatic 4.5-second sequential hero background slideshow
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveHeroSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 7500);
+      setActiveHeroSlide((prev) => (prev + 1) % 3);
+    }, 4500);
     return () => clearInterval(timer);
+  }, []);
+
+  // Display welcoming Book Now pop-up modal when visitor first enters the site
+  useEffect(() => {
+    const popupTimer = setTimeout(() => {
+      setEntryPopUpOpen(true);
+    }, 600);
+    return () => clearTimeout(popupTimer);
   }, []);
 
   const selectedHallObj =
@@ -1010,7 +1197,7 @@ export default function App() {
       ...prev,
       customerName: prev.customerName || currentUser.fullName || '',
       mobileNumber: prev.mobileNumber || currentUser.phone || '',
-      emailAddress: prev.emailAddress || currentUser.email || ''
+      emailAddress: ''
     }));
   }, [currentUser]);
 
@@ -1112,37 +1299,33 @@ export default function App() {
       return;
     }
 
-    // Prevent double-booking of the same hall for an already approved date & overlapping session
-    const isAlreadyApproved = approvedBookings.some((b) => {
-      if (b.hallId !== bookingForm.hallId || b.date !== bookingForm.eventDate) {
-        return false;
-      }
-      if (
-        b.session === 'Full-Day Session' ||
-        bookingForm.session === 'Full-Day Session' ||
-        b.session === bookingForm.session
-      ) {
-        return true;
-      }
-      return false;
+    // Conflict check before insert: checks BOTH hall_id AND event_date together where status in ['pending', 'approved']
+    const isAlreadyBooked = approvedBookings.some((b) => {
+      const matchHall = b.hallId === bookingForm.hallId;
+      const matchDate = b.date === bookingForm.eventDate;
+      const matchStatus = b.status
+        ? ['pending', 'approved'].includes(b.status.toLowerCase())
+        : true;
+      return matchHall && matchDate && matchStatus;
     });
 
-    if (isAlreadyApproved) {
-      setBookingError(
-        `${selectedHallObj.name} is already booked and approved for ${bookingForm.eventDate} (${bookingForm.session}). Please choose another session, date, or check availability for our other halls.`
-      );
+    if (isAlreadyBooked) {
+      const errMsg = 'This hall is already booked on the selected date.';
+      setBookingError(errMsg);
+      setToast({ type: 'error', message: errMsg });
       return;
     }
 
     const referenceCode = `BB-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    // Explicit null profile_id for unauthenticated guest visitors
     const { error } = await supabase
       .from('booking_enquiries')
       .insert({
         reference_code: referenceCode,
-        profile_id: currentUser?.id ?? null,
+        profile_id: null,
         customer_name: customerName,
         mobile_number: mobileNumber,
-        email_address: emailAddress || currentUser?.email || '',
+        email_address: emailAddress,
         hall_id: bookingForm.hallId,
         hall_name: selectedHallObj.name,
         hall_category: selectedHallObj.category,
@@ -1155,11 +1338,12 @@ export default function App() {
       });
 
     if (error) {
-      setBookingError(
-        error.code === '42501'
-          ? 'Guest booking is not enabled in the database yet. Apply the updated Supabase migration and try again.'
-          : error.message
-      );
+      const errorMsg = error.code === '42501'
+        ? 'Guest booking is not enabled in the database yet. Please run the updated Supabase SQL migration.'
+        : error.message;
+      setBookingError(errorMsg);
+      // Display Supabase .insert() error directly in a toast
+      setToast({ type: 'error', message: `Booking submission error: ${errorMsg}` });
       return;
     }
 
@@ -1177,21 +1361,28 @@ export default function App() {
       })
     };
     if (currentUser) setEnquiries((prev) => [newEnquiry, ...prev]);
+    // Immediately track this booked slot in live state so availability updates instantly
+    setApprovedBookings((prev) => [
+      ...prev,
+      {
+        hallId: bookingForm.hallId,
+        date: bookingForm.eventDate,
+        session: bookingForm.session
+      }
+    ]);
     setBookingSuccessData(newEnquiry);
   };
 
-  // Real-time availability check for selected hall + date + session
+  // Real-time availability check for specific hall + event date (where status in ['pending', 'approved'])
   const selectedSlotStatus = (() => {
-    if (!bookingForm.eventDate) return null;
+    if (!bookingForm.eventDate || !bookingForm.hallId) return null;
     const conflict = approvedBookings.some((b) => {
-      if (b.hallId !== bookingForm.hallId || b.date !== bookingForm.eventDate) {
-        return false;
-      }
-      return (
-        b.session === 'Full-Day Session' ||
-        bookingForm.session === 'Full-Day Session' ||
-        b.session === bookingForm.session
-      );
+      const matchHall = b.hallId === bookingForm.hallId;
+      const matchDate = b.date === bookingForm.eventDate;
+      const matchStatus = b.status
+        ? ['pending', 'approved'].includes(b.status.toLowerCase())
+        : true;
+      return matchHall && matchDate && matchStatus;
     });
     return conflict ? 'unavailable' : 'available';
   })();
@@ -1219,192 +1410,38 @@ export default function App() {
   };
   const currentUserInitial = currentUser?.fullName?.charAt(0)?.toUpperCase() || 'U';
 
-  const authDialog = authModalOpen && !currentUser ? (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="customer-auth-title">
-        <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-[#C99A43]/40 bg-[#FFF0D5]/95 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)] backdrop-blur-sm">
-          <div className="mb-6 flex justify-center">
-            <div className="relative flex w-full justify-center">
-              <TempleLogoSVG />
-              <button
-                type="button"
-                onClick={() => { setAuthModalOpen(false); setAuthError(''); setAuthNotice(''); }}
-                className="absolute right-0 top-0 rounded-full p-2 text-[#741B1B] hover:bg-[#F8E7C8]"
-                aria-label="Close sign in"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
 
-          <div className="text-center">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-[#A64B2A]" style={{ fontFamily: "'Cinzel', serif" }}>
-              Welcome
-            </p>
-            <h1 id="customer-auth-title" className="mt-3 text-3xl font-bold text-[#5A1015]" style={{ fontFamily: "'Cinzel', serif" }}>
-              BUNTARA BHAVANA
-            </h1>
-            <p className="mt-2 text-sm text-[#6B3A2B]">Create your profile to book halls and manage your booking history</p>
-          </div>
-
-          {!isSupabaseConfigured && (
-            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              Account sign-in and booking submission are unavailable until Supabase is configured.
-            </p>
-          )}
-
-          <div className="mt-7 flex rounded-full border border-[#C99A43] bg-[#F8E7C8] p-1">
-            <button
-              type="button"
-              onClick={() => { setAuthMode('register'); setAuthNotice(''); }}
-              className={`flex-1 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] ${
-                authMode === 'register' ? 'bg-[#5A1015] text-[#FFF0D5]' : 'text-[#5A1015]'
-              }`}
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              Register
-            </button>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('login'); setAuthNotice(''); }}
-              className={`flex-1 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] ${
-                authMode === 'login' ? 'bg-[#5A1015] text-[#FFF0D5]' : 'text-[#5A1015]'
-              }`}
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              Login
-            </button>
-          </div>
-
-          {authMode === 'register' ? (
-            <form onSubmit={handleRegisterSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Full Name</label>
-                <input
-                  type="text"
-                  value={authForm.fullName}
-                  onChange={(e) => handleAuthChange('fullName', e.target.value)}
-                  className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                  placeholder="Your full name"
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Email</label>
-                  <input
-                    type="email"
-                    value={authForm.email}
-                    onChange={(e) => handleAuthChange('email', e.target.value)}
-                    className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                    placeholder="you@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Phone</label>
-                  <input
-                    type="tel"
-                    value={authForm.phone}
-                    onChange={(e) => handleAuthChange('phone', e.target.value)}
-                    className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                    placeholder="+91 98765 43210"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Username</label>
-                <input
-                  type="text"
-                  value={authForm.username}
-                  onChange={(e) => handleAuthChange('username', e.target.value)}
-                  className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                  placeholder="Choose a username"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Password</label>
-                <input
-                  type="password"
-                  value={authForm.password}
-                  onChange={(e) => handleAuthChange('password', e.target.value)}
-                  className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                  placeholder="Create a password"
-                />
-              </div>
-
-              {authError && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{authError}</p>
-              )}
-              {authNotice && (
-                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{authNotice}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={!isSupabaseConfigured}
-                className="w-full rounded-xl bg-[#5A1015] px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#FFF0D5] shadow-lg shadow-[#5A1015]/25 hover:bg-[#741B1B]"
-              >
-                Create My Profile
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleLoginSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Email</label>
-                <input
-                  type="email"
-                  value={authForm.email}
-                  onChange={(e) => handleAuthChange('email', e.target.value)}
-                  className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                  placeholder="you@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-[#5A1015]">Password</label>
-                <input
-                  type="password"
-                  value={authForm.password}
-                  onChange={(e) => handleAuthChange('password', e.target.value)}
-                  className="w-full rounded-xl border border-[#C99A43] bg-white px-3 py-3 text-[#2F1A12] outline-none placeholder:text-[#9F7F67]"
-                  placeholder="Enter your password"
-                />
-              </div>
-
-              {authError && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{authError}</p>
-              )}
-              {authNotice && (
-                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{authNotice}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={!isSupabaseConfigured}
-                className="w-full rounded-xl bg-[#5A1015] px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#FFF0D5] shadow-lg shadow-[#5A1015]/25 hover:bg-[#741B1B]"
-              >
-                Sign In
-              </button>
-            </form>
-          )}
-
-          <p className="mt-5 text-center text-xs text-[#6B3A2B]">
-            Already have a profile? Switch to <button type="button" onClick={() => setAuthMode('login')} className="font-semibold text-[#5A1015] underline">Login</button>
-          </p>
-          <p className="mt-3 text-center text-xs text-[#6B3A2B]">
-            Venue staff? <a href="/admin" className="font-semibold text-[#5A1015] underline">Administrator sign in</a>
-          </p>
-        </div>
-      </div>
-    ) : null;
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-[#FFF0D5] text-[#48251B] selection:bg-[#741B1B] selection:text-[#FFF0D5] overflow-x-hidden"
+      className="min-h-screen flex flex-col bg-white text-gray-800 selection:bg-[#741B1B] selection:text-white overflow-x-hidden"
       style={{ fontFamily: "'Lora', Georgia, serif" }}
     >
-      {authDialog}
+      {/* Floating Toast Notification */}
+      {toast && (
+        <div
+          role="alert"
+          className={`fixed top-5 right-5 z-[99999] max-w-md flex items-start gap-3 p-4 rounded-xl shadow-2xl border text-sm backdrop-blur-md transition-all ${
+            toast.type === 'error'
+              ? 'bg-red-950/95 text-red-100 border-red-500/50 shadow-red-950/40'
+              : 'bg-emerald-950/95 text-emerald-100 border-emerald-500/50 shadow-emerald-950/40'
+          }`}
+        >
+          <span className="text-xl shrink-0">{toast.type === 'error' ? '⚠️' : '✅'}</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm">{toast.type === 'error' ? 'Booking Error' : 'Success'}</p>
+            <p className="text-xs mt-0.5 opacity-90 break-words leading-relaxed">{toast.message}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            className="text-gray-400 hover:text-white p-1 rounded-md cursor-pointer shrink-0"
+            aria-label="Dismiss toast"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {siteError && (
         <div role="alert" className="bg-red-50 px-4 py-2 text-center text-sm text-red-800">
           Could not load shared venue data: {siteError}
@@ -1413,7 +1450,7 @@ export default function App() {
       {/* =====================================================================
           1. TOP INFORMATION BAR (Dark Maroon #5A1015)
          ===================================================================== */}
-      <div className="bg-[#5A1015] text-[#FFF0D5] border-b border-[#C99A43]/35 text-xs sm:text-[13px] tracking-wide">
+      <div className="bg-[#5A1015] text-[#FFF0D5] border-b border-gray-200/35 text-xs sm:text-[13px] tracking-wide">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-col sm:flex-row items-center justify-between gap-1.5">
           {/* Left Side */}
           <div className="flex items-center gap-2 font-medium text-[#F8E7C8]">
@@ -1447,7 +1484,7 @@ export default function App() {
       {/* =====================================================================
           2. MAIN NAVIGATION BAR (Warm Cream #FFF0D5 / Ivory #F8E7C8)
          ===================================================================== */}
-      <header className="sticky top-0 z-40 bg-[#FFF0D5]/95 backdrop-blur-sm border-b-2 border-[#C99A43] shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 md:h-22">
             {/* Left Side: Temple Logo + BUNTARA BHAVANA / GURUVAYANKERE */}
@@ -1464,7 +1501,7 @@ export default function App() {
                   BUNTARA BHAVANA
                 </span>
                 <span
-                  className="text-[11px] sm:text-xs font-semibold tracking-[0.26em] text-[#A64B2A] uppercase mt-0.5"
+                  className="text-[11px] sm:text-xs font-semibold tracking-[0.26em] text-gray-600 uppercase mt-0.5"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   GURUVAYANKERE
@@ -1490,133 +1527,24 @@ export default function App() {
                 <React.Fragment key={link}>
                   <button
                     onClick={() => handleNavClick(link)}
-                    className="px-2.5 py-1.5 text-[12.5px] font-semibold tracking-[0.08em] text-[#48251B] hover:text-[#741B1B] transition-colors relative group"
+                    className="px-2.5 py-1.5 text-[12.5px] font-semibold tracking-[0.08em] text-gray-700 hover:text-[#741B1B] transition-colors relative group"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     {link}
                     <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 bg-[#C99A43] scale-x-0 group-hover:scale-x-100 transition-transform origin-center" />
                   </button>
                   {idx < arr.length - 1 && (
-                    <span className="text-[#C99A43]/60 text-xs select-none">|</span>
+                    <span className="text-gray-300 text-xs select-none">|</span>
                   )}
                 </React.Fragment>
               ))}
             </nav>
 
-            {/* Right Side: Profile Menu + BOOK NOW Button + Mobile Hamburger */}
+            {/* Right Side: BOOK NOW Button + Mobile Hamburger */}
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setProfileMenuOpen((open) => !open)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#C99A43] bg-[#5A1015] text-[#FFF0D5] shadow-sm transition hover:bg-[#741B1B] focus:outline-none focus:ring-2 focus:ring-[#C99A43] focus:ring-offset-2"
-                  aria-label="Open your profile and bookings"
-                  aria-expanded={profileMenuOpen}
-                  aria-haspopup="true"
-                >
-                  <UserRound className="h-5 w-5" />
-                </button>
-
-                {profileMenuOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#C99A43] bg-[#FFF0D5] shadow-2xl">
-                    {currentUser ? (
-                      <>
-                    <div className="flex items-center gap-3 border-b border-[#C99A43]/50 bg-[#F8E7C8] p-4">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#5A1015] text-lg font-bold text-[#FFF0D5]">
-                        {currentUserInitial}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-[#5A1015]">{currentUser?.fullName}</p>
-                        <p className="truncate text-xs text-[#A64B2A]">@{currentUser?.username}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 px-4 py-3 text-sm text-[#48251B]">
-                      <p className="break-all"><span className="font-semibold">Email:</span> {currentUser?.email}</p>
-                      <p><span className="font-semibold">Phone:</span> {currentUser?.phone}</p>
-                    </div>
-
-                    <div className="border-t border-[#C99A43]/50 px-4 py-3">
-                      <div className="mb-2 flex items-center justify-between">
-                        <h3 className="font-bold text-[#5A1015]" style={{ fontFamily: "'Cinzel', serif" }}>
-                          My Bookings
-                        </h3>
-                        <span className="rounded-full bg-[#741B1B] px-2 py-0.5 text-xs font-semibold text-[#FFF0D5]">
-                          {enquiries.length}
-                        </span>
-                      </div>
-                      {enquiries.length === 0 ? (
-                        <p className="rounded-lg bg-white/70 p-3 text-xs text-[#6B5144]">
-                          Your booking enquiries will appear here after you submit one.
-                        </p>
-                      ) : (
-                        <div className="max-h-56 space-y-2 overflow-y-auto">
-                          {enquiries.map((enquiry) => (
-                            <div key={enquiry.id} className="rounded-lg border border-[#C99A43]/50 bg-white/70 p-3 text-xs">
-                              <p className="font-semibold leading-snug text-[#5A1015]">{enquiry.hallName}</p>
-                              <p className="mt-1 text-[#48251B]">
-                                {enquiry.eventType} · {enquiry.eventDate} · {enquiry.session}
-                              </p>
-                              <p className="mt-1 text-[#A64B2A]">
-                                Ref: {enquiry.id} · {enquiry.status}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {legacyEnquiries.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleImportLegacyEnquiries}
-                        className="w-full border-t border-[#C99A43]/50 px-4 py-3 text-left text-sm font-semibold text-[#741B1B] hover:bg-[#F8E7C8]"
-                      >
-                        Import {legacyEnquiries.length} previous booking request{legacyEnquiries.length === 1 ? '' : 's'}
-                      </button>
-                    )}
-                    {profileNotice && (
-                      <p role="status" className="border-t border-[#C99A43]/50 bg-emerald-50 px-4 py-2 text-xs text-emerald-900">
-                        {profileNotice}
-                      </p>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-2 border-t border-[#C99A43]/50 px-4 py-3 text-left text-sm font-semibold text-[#741B1B] transition hover:bg-[#F8E7C8]"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Log out
-                    </button>
-                      </>
-                    ) : (
-                      <div className="p-4">
-                        <p className="font-semibold text-[#5A1015]">Welcome to Buntara Bhavana</p>
-                        <p className="mt-1 text-sm text-[#6B5144]">Sign in to view your profile and booking history, or create an account when you are ready to book.</p>
-                        <button
-                          type="button"
-                          onClick={() => { setProfileMenuOpen(false); setAuthMode('login'); setAuthError(''); setAuthNotice(''); setAuthModalOpen(true); }}
-                          className="mt-4 w-full rounded-lg bg-[#5A1015] px-4 py-2.5 text-sm font-semibold text-[#FFF0D5] hover:bg-[#741B1B]"
-                        >
-                          Sign In
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setProfileMenuOpen(false); setAuthMode('register'); setAuthError(''); setAuthNotice(''); setAuthModalOpen(true); }}
-                          className="mt-2 w-full rounded-lg border border-[#C99A43] px-4 py-2.5 text-sm font-semibold text-[#5A1015] hover:bg-[#F8E7C8]"
-                        >
-                          Create Profile
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
               <button
                 onClick={() => handleOpenBooking('malady-tunga')}
-                className="inline-flex items-center gap-2 bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-[13px] font-bold tracking-[0.1em] shadow-md hover:shadow-lg transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 bg-[#741B1B] hover:bg-[#5A1015] text-white px-5 py-2.5 rounded-full text-xs sm:text-[13px] font-bold tracking-[0.1em] shadow-sm hover:shadow-md transition-all cursor-pointer"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 <Calendar className="w-4 h-4 text-[#C99A43]" />
@@ -1627,7 +1555,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="xl:hidden p-2.5 rounded-lg border border-[#C99A43]/60 text-[#741B1B] hover:bg-[#F8E7C8] transition-colors"
+                className="xl:hidden p-2.5 rounded-lg border border-gray-200/60 text-[#741B1B] hover:bg-gray-50 transition-colors"
                 aria-label="Toggle Menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -1638,7 +1566,7 @@ export default function App() {
 
         {/* Mobile / Tablet Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="xl:hidden bg-[#F8E7C8] border-t border-[#C99A43] px-4 pt-3 pb-5 shadow-inner">
+          <div className="xl:hidden bg-white border-t border-gray-200 px-4 pt-3 pb-5 shadow-md">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
                 'HOME',
@@ -1653,7 +1581,7 @@ export default function App() {
                 <button
                   key={link}
                   onClick={() => handleNavClick(link)}
-                  className="text-left px-3 py-2.5 rounded-md text-xs font-bold tracking-[0.08em] text-[#741B1B] hover:bg-[#FFF0D5] border border-transparent hover:border-[#C99A43]/50 transition-all"
+                  className="text-left px-3 py-2.5 rounded-md text-xs font-bold tracking-[0.08em] text-[#741B1B] hover:bg-[#FFF0D5] border border-transparent hover:border-gray-200/50 transition-all"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   {link}
@@ -1665,93 +1593,128 @@ export default function App() {
       </header>
 
       {/* =====================================================================
-          3. HERO BANNER – MAIN ATTRACTION
+          3. HERO BANNER – SEQUENTIAL SLIDESHOW & HIGH-CONTRAST BRASS LAMPS
          ===================================================================== */}
-      <section className="relative w-full min-h-[540px] sm:min-h-[600px] lg:min-h-[640px] flex items-center overflow-hidden border-b-4 border-[#C99A43]">
-        {/* Full-Width Venue Exterior Background Photograph (1st pic: main pic.jpg) */}
-        <VenueImage
-          src={currentHero.image}
-          fallbacks={currentHero.fallbackImages}
-          customSrc={customPhotos.hero}
-          variant="exterior"
-          alt="Buntara Bhavana Guruvayankere Exterior"
-          className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000"
-        />
+      <section className="relative w-full min-h-[580px] sm:min-h-[640px] lg:min-h-[680px] flex items-center overflow-hidden border-b-2 border-[#C99A43] bg-[#0B192C]">
+        
+        {/* 3-Photo Sequential Background Slideshow with Smooth CSS Crossfade */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {[
+            (siteContent.heroImages && siteContent.heroImages[0]) || siteContent.heroImage || DEFAULT_HERO_SLIDES[0].image,
+            (siteContent.heroImages && siteContent.heroImages[1]) || DEFAULT_HERO_SLIDES[1].image,
+            (siteContent.heroImages && siteContent.heroImages[2]) || DEFAULT_HERO_SLIDES[2].image
+          ].map((imageUrl, idx) => (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                activeHeroSlide === idx ? 'opacity-100 scale-100 z-0' : 'opacity-0 scale-105 pointer-events-none -z-10'
+              }`}
+              style={{
+                transitionProperty: 'opacity, transform',
+                transitionDuration: '1000ms'
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt={`Buntara Bhavana Guruvayankere Hero View ${idx + 1}`}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+          ))}
+        </div>
 
-        {/* Subtle Dark Maroon-Brown Gradient Overlay for Crisp Readability */}
+        {/* Dark Navy Gradient Overlay: Sits strictly between background photos (z-0) and foreground text/lamps (z-20) */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 z-10 pointer-events-none"
           style={{
             background:
-              'linear-gradient(90deg, rgba(46, 12, 14, 0.90) 0%, rgba(74, 18, 20, 0.78) 48%, rgba(38, 14, 10, 0.55) 100%)'
+              'linear-gradient(180deg, rgba(11, 25, 44, 0.70) 0%, rgba(11, 25, 44, 0.52) 45%, rgba(11, 25, 44, 0.85) 100%)'
+          }}
+        />
+        <div
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, rgba(11, 25, 44, 0.15) 0%, rgba(11, 25, 44, 0.72) 100%)'
           }}
         />
 
         {/* Natural Greenery & Marigold Floral Corner Framing */}
-        <FloralCornerAccent position="top-left" />
-        <FloralCornerAccent position="top-right" />
-        <FloralCornerAccent position="bottom-left" />
-        <FloralCornerAccent position="bottom-right" />
+        <div className="z-15 pointer-events-none">
+          <FloralCornerAccent position="top-left" />
+          <FloralCornerAccent position="top-right" />
+          <FloralCornerAccent position="bottom-left" />
+          <FloralCornerAccent position="bottom-right" />
+        </div>
 
         {/* Subtle Gold Inner Frame Border */}
-        <div className="pointer-events-none absolute inset-3 sm:inset-5 border border-[#C99A43]/35 rounded-sm" />
+        <div className="pointer-events-none absolute inset-3 sm:inset-5 border border-[#C99A43]/35 rounded-sm z-15" />
 
-        {/* Hero Left-Aligned Content Container */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-14 sm:py-20">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-10 max-w-4xl">
-            {/* Traditional Brass Nilavilakku Lamp Decoration on the Left */}
-            <div className="hidden sm:flex flex-col items-center shrink-0">
-              <NilavilakkuLampSVG className="w-16 h-44 lg:w-20 lg:h-52 drop-shadow-[0_0_18px_rgba(201,154,67,0.45)]" />
-            </div>
-
-            {/* Main Left-Aligned Typography & CTA Buttons */}
-            <div className="text-left">
-              {/* Top Kicker with Gold Decorative Lines */}
-              <div className="flex items-center gap-3 mb-3">
-                <span className="h-[1.5px] w-8 sm:w-12 bg-[#C99A43]" />
-                <p
-                  className="text-xs sm:text-sm font-semibold tracking-[0.22em] text-[#F3CF7A] uppercase"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {currentHero.kicker}
-                </p>
-                <span className="h-[1.5px] w-8 sm:w-12 bg-[#C99A43]" />
-              </div>
-
-              {/* Large White Serif Main Heading */}
-              <h1
-                className="text-3xl sm:text-5xl lg:text-[58px] font-bold text-white tracking-[0.05em] leading-[1.12] drop-shadow-md"
+        {/* Hero Symmetrical Content Container (relative z-20 above overlay) */}
+        <div className="relative z-20 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-10 py-12 sm:py-16 md:py-20">
+          <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 md:gap-8 max-w-6xl mx-auto">
+            
+            {/* Left Visible High-Contrast Traditional Brass Lamp (Deepam) */}
+            <div className="flex flex-col items-center shrink-0 select-none">
+              <TraditionalDeepaLamp
+                className="w-10 sm:w-16 md:w-20 lg:w-24 h-36 sm:h-52 md:h-64 lg:h-76 drop-shadow-[0_0_24px_rgba(251,191,36,0.85)] transition-transform duration-300 hover:scale-105"
+              />
+              <span
+                className="text-[9px] sm:text-[11px] md:text-xs font-bold text-[#F3CF7A] tracking-[0.25em] mt-1 sm:mt-2 uppercase text-center drop-shadow"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {currentHero.title}
-              </h1>
+                Deepam
+              </span>
+            </div>
 
-              {/* Gold-Highlighted Location Text */}
-              <div className="mt-2.5 sm:mt-3 flex items-center gap-3">
+            {/* Central Typography & Action Buttons */}
+            <div className="flex-1 text-center max-w-2xl px-1 sm:px-4">
+              {/* Top Kicker with Gold Lines */}
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <span className="h-[1.5px] w-6 sm:w-10 bg-[#C99A43]" />
                 <p
-                  className="text-base sm:text-xl lg:text-2xl font-bold text-[#C99A43] tracking-[0.34em] uppercase"
+                  className="text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.2em] sm:tracking-[0.24em] text-[#F3CF7A] uppercase"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  {currentHero.location}
+                  {siteContent.heroKicker || 'TRADITION • CULTURE • CELEBRATION'}
+                </p>
+                <span className="h-[1.5px] w-6 sm:w-10 bg-[#C99A43]" />
+              </div>
+
+              {/* Main Heading */}
+              <h1
+                className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-[0.04em] leading-[1.12] drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                BUNTARA BHAVANA
+              </h1>
+
+              {/* Gold Location Tag */}
+              <div className="mt-1.5 sm:mt-2.5 flex items-center justify-center">
+                <p
+                  className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-[#C99A43] tracking-[0.28em] sm:tracking-[0.34em] uppercase drop-shadow"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  GURUVAYANKERE
                 </p>
               </div>
 
-              {/* Gold Decorative Rule */}
-              <div className="w-44 sm:w-64 h-[1.5px] bg-gradient-to-r from-[#C99A43] via-[#F3CF7A] to-transparent my-4 sm:my-5" />
+              {/* Ornamental Golden Divider */}
+              <div className="w-36 sm:w-56 md:w-72 h-[1.5px] bg-gradient-to-r from-transparent via-[#F3CF7A] to-transparent my-3 sm:my-4 mx-auto" />
 
               {/* Tagline */}
               <p
-                className="text-lg sm:text-2xl text-[#FFF0D5] italic font-medium max-w-2xl leading-relaxed"
+                className="text-sm sm:text-lg md:text-xl text-[#FFF9EE] italic font-medium leading-relaxed drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] max-w-xl mx-auto"
                 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
               >
-                {currentHero.tagline}
+                &ldquo;{siteContent.heroTagline || 'A Beautiful Place for Celebrations, Gatherings & Memories.'}&rdquo;
               </p>
 
-              {/* Two Attractive Maroon & Gold CTA Buttons */}
-              <div className="mt-7 sm:mt-9 flex flex-wrap items-center gap-4">
+              {/* Dual Attractive CTA Buttons */}
+              <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                 <button
                   onClick={() => handleNavClick('OUR HALLS')}
-                  className="px-6 sm:px-7 py-3.5 rounded-md bg-[#C99A43] hover:bg-[#d8aa52] text-[#48251B] font-bold text-xs sm:text-sm tracking-[0.12em] uppercase shadow-lg border border-[#FFF0D5]/40 transition-all cursor-pointer"
+                  className="px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-lg bg-[#C99A43] hover:bg-[#d8aa52] text-gray-900 font-bold text-xs sm:text-sm tracking-[0.12em] uppercase shadow-xl border border-[#FFF0D5]/50 transition-all transform hover:scale-[1.02] cursor-pointer"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   EXPLORE OUR HALLS
@@ -1759,31 +1722,46 @@ export default function App() {
 
                 <button
                   onClick={() => handleOpenBooking('malady-tunga')}
-                  className="px-6 sm:px-7 py-3.5 rounded-md bg-[#741B1B]/95 hover:bg-[#5A1015] text-[#FFF0D5] font-bold text-xs sm:text-sm tracking-[0.12em] uppercase shadow-lg border-2 border-[#C99A43] transition-all cursor-pointer"
+                  className="px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-lg bg-[#741B1B]/95 hover:bg-[#5A1015] text-[#FFF9EE] font-bold text-xs sm:text-sm tracking-[0.12em] uppercase shadow-xl border-2 border-[#C99A43] transition-all transform hover:scale-[1.02] cursor-pointer"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   BOOK YOUR CELEBRATION
                 </button>
               </div>
             </div>
+
+            {/* Right Visible High-Contrast Traditional Brass Lamp (Mangalam) */}
+            <div className="flex flex-col items-center shrink-0 select-none">
+              <TraditionalDeepaLamp
+                flip
+                className="w-10 sm:w-16 md:w-20 lg:w-24 h-36 sm:h-52 md:h-64 lg:h-76 drop-shadow-[0_0_24px_rgba(251,191,36,0.85)] transition-transform duration-300 hover:scale-105"
+              />
+              <span
+                className="text-[9px] sm:text-[11px] md:text-xs font-bold text-[#F3CF7A] tracking-[0.25em] mt-1 sm:mt-2 uppercase text-center drop-shadow"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                Mangalam
+              </span>
+            </div>
+
           </div>
         </div>
 
-        {/* Three Small Carousel Indicators at Bottom Centre */}
+        {/* Sequential Slide Indicators at Bottom Centre */}
         <div
-          className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 bg-[#5A1015]/70 px-3.5 py-1.5 rounded-full border border-[#C99A43]/40"
+          className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 bg-[#0B192C]/85 px-4 py-2 rounded-full border border-[#C99A43]/50 backdrop-blur-sm shadow-xl"
           role="tablist"
-          aria-label="Hero Banner Slides"
+          aria-label="Hero Slideshow Indicators"
         >
-          {HERO_SLIDES.map((slide, idx) => (
+          {[0, 1, 2].map((idx) => (
             <button
-              key={slide.id}
+              key={idx}
               onClick={() => setActiveHeroSlide(idx)}
               aria-label={`Slide ${idx + 1}`}
-              className={`transition-all rounded-full cursor-pointer ${
+              className={`transition-all duration-300 rounded-full cursor-pointer ${
                 activeHeroSlide === idx
-                  ? 'w-7 h-2.5 bg-[#C99A43]'
-                  : 'w-2.5 h-2.5 bg-[#FFF0D5]/60 hover:bg-[#FFF0D5]'
+                  ? 'w-7 h-2.5 bg-[#C99A43] shadow-[0_0_8px_#C99A43]'
+                  : 'w-2.5 h-2.5 bg-[#FFF9EE]/50 hover:bg-[#FFF9EE]'
               }`}
             />
           ))}
@@ -1793,7 +1771,7 @@ export default function App() {
       {/* =====================================================================
           4. THREE DISTINCTIVE SPACES – MOST IMPORTANT CONTENT SECTION
          ===================================================================== */}
-      <main id="our-halls-section" className="relative py-14 sm:py-20 bg-[#FFF0D5]">
+      <main id="our-halls-section" className="relative py-16 sm:py-20 bg-gray-50/70 border-b border-gray-200">
         {/* Subtle Traditional Kolam / Temple Diamond Motif Pattern */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.045]"
@@ -1820,7 +1798,7 @@ export default function App() {
             </div>
 
             <p
-              className="mt-2.5 text-lg sm:text-2xl italic text-[#A64B2A] font-medium"
+              className="mt-2.5 text-lg sm:text-2xl italic text-gray-600 font-medium"
               style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
             >
               {siteContent.hallsSubtitle || 'One Place for Every Celebration'}
@@ -1832,23 +1810,28 @@ export default function App() {
             {hallsData.map((hall) => (
               <article
                 key={hall.id}
-                className="flex flex-col bg-[#F8E7C8] rounded-xl border-2 border-[#C99A43] shadow-[0_8px_24px_rgba(72,37,27,0.10)] hover:shadow-[0_14px_32px_rgba(116,27,27,0.18)] transition-all duration-300 overflow-hidden group"
+                className="flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
               >
                 {/* Large Actual Hall Photograph at the Top */}
-                <div className="relative h-56 sm:h-60 w-full overflow-hidden border-b-2 border-[#C99A43]">
+                <div className="relative h-56 sm:h-60 w-full overflow-hidden border-b border-gray-200">
                   <VenueImage
                     src={hall.image}
                     fallbacks={hall.fallbackImages}
-                    customSrc={customPhotos[hall.id]}
                     variant="hall"
                     alt={hall.name}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#48251B]/55 via-transparent to-transparent pointer-events-none" />
 
+                  {/* Hall Number Badge */}
+                  <span className="absolute top-3.5 left-3.5 px-3 py-1 rounded-full bg-[#0B192C]/90 text-[#F3CF7A] border border-[#C99A43] text-[11px] font-bold tracking-[0.14em] uppercase shadow-md flex items-center gap-1.5 backdrop-blur-xs">
+                    <span>🏛️</span>
+                    <span>{hall.hallTag || (hall.id === 'malady-tunga' ? 'Hall 1' : hall.id === 'kaashi-shetty' ? 'Hall 2' : 'Hall 3')}</span>
+                  </span>
+
                   {/* Category Badge */}
                   <span
-                    className="absolute top-3.5 right-3.5 px-3.5 py-1 rounded-full bg-[#741B1B] text-[#FFF0D5] border border-[#C99A43] text-[11px] font-bold tracking-[0.14em] uppercase shadow-md"
+                    className="absolute top-3.5 right-3.5 px-3.5 py-1 rounded-full bg-[#741B1B] text-[#FFF0D5] border border-gray-200 text-[11px] font-bold tracking-[0.14em] uppercase shadow-md"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     {hall.category}
@@ -1860,7 +1843,7 @@ export default function App() {
                   <div>
                     {/* Official Hall Name */}
                     <h3
-                      className="text-lg sm:text-[19px] font-bold text-[#48251B] tracking-[0.03em] leading-snug min-h-[52px]"
+                      className="text-lg sm:text-[19px] font-bold text-gray-900 tracking-[0.03em] leading-snug min-h-[52px]"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       {hall.name}
@@ -1877,22 +1860,48 @@ export default function App() {
                       >
                         {hall.formattedPrice}
                       </span>
-                      <span className="text-xs uppercase tracking-wider text-[#A64B2A] font-semibold">
+                      <span className="text-xs uppercase tracking-wider text-gray-600 font-semibold">
                         / Per Day Rental
                       </span>
                     </div>
 
                     {/* Short Description */}
-                    <p className="text-sm sm:text-[15px] text-[#48251B]/90 leading-relaxed">
+                    <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed">
                       {hall.description}
                     </p>
+
+                    {/* Hall Highlights Badges/Bullets */}
+                    {hall.highlights && hall.highlights.length > 0 && (
+                      <div className="mt-4 pt-3.5 border-t border-gray-100">
+                        <p
+                          className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#741B1B] mb-2 flex items-center justify-between"
+                          style={{ fontFamily: "'Cinzel', serif" }}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <span>✦</span>
+                            <span>Key Highlights</span>
+                          </span>
+                          <span className="text-[10px] text-gray-500 font-normal lowercase tracking-normal">
+                            {hall.highlights.length} features
+                          </span>
+                        </p>
+                        <ul className="space-y-1.5 text-xs text-gray-700">
+                          {hall.highlights.map((highlight, hIdx) => (
+                            <li key={hIdx} className="flex items-start gap-2 leading-relaxed">
+                              <span className="text-[#C99A43] font-bold shrink-0 mt-0.5">✦</span>
+                              <span>{highlight}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
                   {/* Two Action Buttons: EXPLORE HALL & BOOK THIS HALL */}
-                  <div className="mt-6 pt-4 border-t border-[#C99A43]/40 grid grid-cols-2 gap-3">
+                  <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setSelectedHallForDetails(hall)}
-                      className="py-2.5 px-3 rounded-md bg-[#FFF0D5] hover:bg-[#C99A43]/25 text-[#741B1B] border border-[#741B1B] font-bold text-[11.5px] tracking-[0.08em] uppercase transition-colors cursor-pointer"
+                      className="py-2.5 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 hover:border-gray-400 font-bold text-[11.5px] tracking-[0.08em] uppercase transition-colors cursor-pointer"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       EXPLORE HALL
@@ -1900,7 +1909,7 @@ export default function App() {
 
                     <button
                       onClick={() => handleOpenBooking(hall.id)}
-                      className="py-2.5 px-3 rounded-md bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] font-bold text-[11.5px] tracking-[0.08em] uppercase shadow-sm transition-colors cursor-pointer"
+                      className="py-2.5 px-3 rounded-lg bg-[#741B1B] hover:bg-[#5A1015] text-white font-bold text-[11.5px] tracking-[0.08em] uppercase shadow-sm hover:shadow-md transition-colors cursor-pointer"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       BOOK THIS HALL
@@ -1914,9 +1923,334 @@ export default function App() {
       </main>
 
       {/* =====================================================================
+          HOME PAGE GALLERY SECTION (Synced with Admin Uploads - View-Only)
+         ===================================================================== */}
+      <section id="gallery-section" className="relative py-16 sm:py-20 bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <GoldOrnamentalDivider />
+              <span className="text-xs font-bold tracking-[0.22em] text-[#C99A43] uppercase">
+                Visual Splendour
+              </span>
+              <GoldOrnamentalDivider flip />
+            </div>
+            <h2
+              className="text-2xl sm:text-4xl font-bold text-[#0B192C] tracking-wide"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              VENUE PHOTO GALLERY
+            </h2>
+            <p
+              className="mt-3 text-base sm:text-lg text-gray-600 leading-relaxed"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            >
+              Glimpse into the regal architecture, auspicious celebration spaces, and traditional Tulunadu hospitality at Buntara Bhavana.
+            </p>
+          </div>
+
+          {/* View-Only Responsive Gallery Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {(galleryItems && galleryItems.length > 0
+              ? galleryItems.map((item) => ({
+                  id: item.id,
+                  title: item.title || 'Buntara Bhavana Venue Gallery',
+                  subtitle: 'Guruvayankere, Belthangady',
+                  imageUrl: item.image_url,
+                  fallbacks: []
+                }))
+              : [
+                  {
+                    id: 'gal-1',
+                    title: 'Buntara Bhavana Exterior',
+                    subtitle: 'Grand Traditional South Indian Facade & Portico',
+                    imageUrl: (siteContent.heroImages && siteContent.heroImages[0]) || siteContent.heroImage || './main%20pic.jpg',
+                    fallbacks: ['main pic.jpg', '/main pic.jpg']
+                  },
+                  {
+                    id: 'gal-2',
+                    title: 'Malady Tunga Vedike (AC Hall)',
+                    subtitle: 'Royal Air-Conditioned Grand Celebration Space',
+                    imageUrl: (siteContent.heroImages && siteContent.heroImages[1]) || './malady.jpg',
+                    fallbacks: ['malady.jpg', '/malady.jpg']
+                  },
+                  {
+                    id: 'gal-3',
+                    title: 'Kaashi Shetty Vedike (Non-AC)',
+                    subtitle: 'Spacious Naturally Ventilated Heritage Hall',
+                    imageUrl: (siteContent.heroImages && siteContent.heroImages[2]) || './kaashi%20hall.jpg',
+                    fallbacks: ['kaashi hall.jpg', '/kaashi hall.jpg']
+                  },
+                  {
+                    id: 'gal-4',
+                    title: 'Grand Banquet Dining Hall',
+                    subtitle: 'Spacious Dedicated Dining with Pure Veg & Non-Veg Facilities',
+                    imageUrl: './kaashi%20hall.jpg',
+                    fallbacks: ['kaashi hall.jpg', '/kaashi hall.jpg']
+                  },
+                  {
+                    id: 'gal-5',
+                    title: 'Grand Stage & Auspicious Mandapam',
+                    subtitle: 'Majestic Floral & Stage Setup for Auspicious Muhurthams',
+                    imageUrl: './malady.jpg',
+                    fallbacks: ['malady.jpg', '/malady.jpg']
+                  },
+                  {
+                    id: 'gal-6',
+                    title: 'Guest Reception & Welcoming Portico',
+                    subtitle: 'Smooth Circular Driveway & Ample 50+ Car Parking',
+                    imageUrl: (siteContent.heroImages && siteContent.heroImages[0]) || siteContent.heroImage || './main%20pic.jpg',
+                    fallbacks: ['main pic.jpg', '/main pic.jpg']
+                  }
+                ]
+            ).map((photo) => (
+              <div
+                key={photo.id}
+                onClick={() => setActiveLightboxImage({ title: photo.title, imageUrl: photo.imageUrl })}
+                className="group relative h-64 sm:h-72 rounded-xl overflow-hidden border border-gray-200 shadow-md hover:shadow-xl hover:border-[#C99A43] transition-all duration-300 cursor-pointer bg-gray-100"
+              >
+                <img
+                  src={photo.imageUrl}
+                  alt={photo.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (photo.fallbacks && photo.fallbacks.length > 0) {
+                      target.src = photo.fallbacks[0];
+                    }
+                  }}
+                />
+                {/* Gradient Overlay & Captions */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C]/90 via-[#0B192C]/30 to-transparent opacity-85 group-hover:opacity-95 transition-opacity flex flex-col justify-end p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4
+                        className="text-base sm:text-lg font-bold text-[#FFF9EE] leading-snug drop-shadow"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        {photo.title}
+                      </h4>
+                      <p className="text-xs text-[#F3CF7A] mt-1 font-medium tracking-wide">
+                        {photo.subtitle}
+                      </p>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#C99A43]/80 group-hover:bg-[#C99A43] text-[#0B192C] flex items-center justify-center shrink-0 transition-colors">
+                      <Maximize2 className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Prompt */}
+          <div className="mt-10 text-center">
+            <button
+              onClick={() => setActiveInfoModal('gallery')}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-[#C99A43] text-[#0B192C] hover:bg-[#C99A43] hover:text-white font-bold text-xs sm:text-sm tracking-wider uppercase transition-all cursor-pointer"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              <span>View Full Venue Gallery</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          HALL POLICIES & GUIDELINES SECTION
+         ===================================================================== */}
+      <section id="hall-policies-section" className="relative py-16 sm:py-20 bg-[#0B192C] text-[#FFF9EE] border-b border-[#C99A43]/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <GoldOrnamentalDivider />
+              <span className="text-xs font-bold tracking-[0.22em] text-[#C99A43] uppercase">
+                Important Information
+              </span>
+              <GoldOrnamentalDivider flip />
+            </div>
+            <h2
+              className="text-2xl sm:text-4xl font-bold text-[#FFF9EE] tracking-wide"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              HALL POLICIES &amp; GUIDELINES
+            </h2>
+            <p
+              className="mt-3 text-base sm:text-lg text-gray-300 leading-relaxed"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            >
+              Clear, transparent guidelines designed to ensure every wedding, auspicious muhurtham, and gathering runs smoothly.
+            </p>
+          </div>
+
+          {/* 3-Column Structured Policies Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            
+            {/* Card 1: Food Policy (Veg & Non-Veg) */}
+            <div className="bg-[#112239] rounded-2xl border-2 border-[#C99A43]/50 p-6 sm:p-7 shadow-xl flex flex-col justify-between hover:border-[#C99A43] transition-all">
+              <div>
+                <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-[#C99A43]/30">
+                  <div className="w-12 h-12 rounded-xl bg-[#741B1B] text-[#C99A43] border border-[#C99A43]/50 flex items-center justify-center shrink-0 shadow-md">
+                    <Utensils className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#FFF9EE]" style={{ fontFamily: "'Cinzel', serif" }}>
+                      Food &amp; Catering Policy
+                    </h3>
+                    <p className="text-xs text-[#C99A43] font-medium tracking-wide">Dining Guidelines</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-xs sm:text-sm text-gray-200">
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-emerald-500/30">
+                    <div className="flex items-center gap-2 mb-1.5 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                      Pure Vegetarian (Veg)
+                    </div>
+                    <p className="text-gray-300 leading-relaxed text-xs">
+                      Dedicated Satvik pure-veg kitchen and plantain-leaf traditional dining hall available. Perfect for auspicious Vedic rituals, thread ceremonies, and traditional feasts.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-amber-500/30">
+                    <div className="flex items-center gap-2 mb-1.5 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+                      Non-Vegetarian (Non-Veg)
+                    </div>
+                    <p className="text-gray-300 leading-relaxed text-xs">
+                      Non-vegetarian catering and dining is permitted strictly in designated banquet dining areas. Outside professional caterers are welcome with advance authorization.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-[#C99A43]/20 flex items-center justify-between text-[11px] text-[#C99A43]">
+                <span>Eco-friendly disposables encouraged</span>
+                <span>❖ Strict Hygiene</span>
+              </div>
+            </div>
+
+            {/* Card 2: Dedicated Parking Capacity */}
+            <div className="bg-[#112239] rounded-2xl border-2 border-[#C99A43]/50 p-6 sm:p-7 shadow-xl flex flex-col justify-between hover:border-[#C99A43] transition-all">
+              <div>
+                <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-[#C99A43]/30">
+                  <div className="w-12 h-12 rounded-xl bg-[#741B1B] text-[#C99A43] border border-[#C99A43]/50 flex items-center justify-center shrink-0 shadow-md">
+                    <Car className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#FFF9EE]" style={{ fontFamily: "'Cinzel', serif" }}>
+                      Parking &amp; Access
+                    </h3>
+                    <p className="text-xs text-[#C99A43] font-medium tracking-wide">Vehicle Capacity</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5 text-xs sm:text-sm text-gray-200">
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-[#C99A43]/30">
+                    <p className="text-sm font-bold text-[#F3CF7A] mb-1">
+                      Dedicated 50+ Vehicle Parking
+                    </p>
+                    <p className="text-gray-300 leading-relaxed text-xs">
+                      Ample, secure on-site parking capacity for up to <strong>50 cars and light vehicles</strong>, with separate designated parking space for two-wheelers and tourist coaches.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-[#C99A43]/30">
+                    <p className="text-sm font-bold text-[#F3CF7A] mb-1">
+                      Circular Porch &amp; VIP Drop-Off
+                    </p>
+                    <p className="text-gray-300 leading-relaxed text-xs">
+                      Wide circular portico driveway allows effortless, sheltered drop-off for wedding couples, elders, and VIP guests right at the main entryway.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-[#C99A43]/30">
+                    <p className="text-sm font-bold text-[#F3CF7A] mb-1">
+                      Elevator &amp; Ramp Accessibility
+                    </p>
+                    <p className="text-gray-300 leading-relaxed text-xs">
+                      Modern passenger lift facility connects dining and stage halls seamlessly for senior citizens and differently-abled guests.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-[#C99A43]/20 flex items-center justify-between text-[11px] text-[#C99A43]">
+                <span>Senior citizen friendly</span>
+                <span>❖ 24/7 Security</span>
+              </div>
+            </div>
+
+            {/* Card 3: Timings & Available Booking Slots */}
+            <div className="bg-[#112239] rounded-2xl border-2 border-[#C99A43]/50 p-6 sm:p-7 shadow-xl flex flex-col justify-between hover:border-[#C99A43] transition-all">
+              <div>
+                <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-[#C99A43]/30">
+                  <div className="w-12 h-12 rounded-xl bg-[#741B1B] text-[#C99A43] border border-[#C99A43]/50 flex items-center justify-center shrink-0 shadow-md">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#FFF9EE]" style={{ fontFamily: "'Cinzel', serif" }}>
+                      Timings &amp; Booking Slots
+                    </h3>
+                    <p className="text-xs text-[#C99A43] font-medium tracking-wide">Synchronized Session Times</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5 text-xs sm:text-sm text-gray-200">
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-[#C99A43]/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-[#F3CF7A] text-xs uppercase tracking-wide">Morning Session</span>
+                      <span className="text-[11px] font-semibold text-[#FFF9EE] bg-[#741B1B] px-2 py-0.5 rounded">10:00 AM – 2:30 PM</span>
+                    </div>
+                    <p className="text-gray-300 text-xs">
+                      Early access from 8:00 AM for floral stage decoration, pooja preparation, and traditional muhurtham rituals.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-[#C99A43]/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-[#F3CF7A] text-xs uppercase tracking-wide">Evening Session</span>
+                      <span className="text-[11px] font-semibold text-[#FFF9EE] bg-[#741B1B] px-2 py-0.5 rounded">6:00 PM – 10:00 PM</span>
+                    </div>
+                    <p className="text-gray-300 text-xs">
+                      Ideal for grand wedding receptions, sangeet nights, felicitation ceremonies, and dinner banquets.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-lg bg-[#0B192C]/80 border border-[#C99A43]/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-[#F3CF7A] text-xs uppercase tracking-wide">Full Day Session</span>
+                      <span className="text-[11px] font-semibold text-[#FFF9EE] bg-[#741B1B] px-2 py-0.5 rounded">8:00 AM – 10:30 PM</span>
+                    </div>
+                    <p className="text-gray-300 text-xs">
+                      Complete uninterrupted access to the main vedike, green rooms, and dining hall throughout the entire day.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-[#C99A43]/20">
+                <button
+                  onClick={() => handleOpenBooking('malady-tunga')}
+                  className="w-full py-2.5 rounded-lg bg-[#C99A43] hover:bg-[#d8aa52] text-[#0B192C] font-bold text-xs uppercase tracking-wider transition-all text-center cursor-pointer"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  Check Available Dates &amp; Book
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
           5. BOTTOM CULTURAL HIGHLIGHT STRIP & MAROON PROMOTIONAL BANNER
          ===================================================================== */}
-      <section className="relative bg-[#F8E7C8] border-t-2 border-b-4 border-[#C99A43] overflow-hidden">
+      <section className="relative bg-white border-b border-gray-200 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Side: Four Cultural Highlights with Maroon Icons */}
@@ -1941,13 +2275,13 @@ export default function App() {
               ].map(({ label, icon: Icon }) => (
                 <div
                   key={label}
-                  className="flex flex-col items-center text-center p-3.5 rounded-lg bg-[#FFF0D5] border border-[#C99A43]/80 shadow-sm"
+                  className="flex flex-col items-center text-center p-4 rounded-xl bg-gray-50 border border-gray-200 shadow-2xs"
                 >
-                  <div className="w-11 h-11 rounded-full bg-[#741B1B] text-[#C99A43] border border-[#C99A43] flex items-center justify-center mb-2.5 shadow-inner">
+                  <div className="w-11 h-11 rounded-full bg-[#741B1B] text-[#C99A43] border border-gray-200 flex items-center justify-center mb-2.5 shadow-inner">
                     <Icon className="w-5 h-5" />
                   </div>
                   <span
-                    className="text-xs sm:text-[13px] font-bold text-[#48251B] leading-snug"
+                    className="text-xs sm:text-[13px] font-bold text-gray-800 leading-snug"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     {label}
@@ -1958,8 +2292,8 @@ export default function App() {
 
             {/* Right Side: Deep Maroon Promotional Banner with Gold Borders */}
             <div className="lg:col-span-5">
-              <div className="relative bg-[#741B1B] text-[#FFF0D5] p-6 sm:p-7 rounded-xl border-2 border-[#C99A43] shadow-lg text-center">
-                <div className="pointer-events-none absolute inset-1.5 border border-[#C99A43]/45 rounded-lg" />
+              <div className="relative bg-[#741B1B] text-[#FFF0D5] p-6 sm:p-7 rounded-xl border-2 border-gray-200 shadow-lg text-center">
+                <div className="pointer-events-none absolute inset-1.5 border border-gray-200/45 rounded-lg" />
                 <p
                   className="text-lg sm:text-xl font-bold text-[#FFF0D5] tracking-wide leading-snug"
                   style={{ fontFamily: "'Cinzel', serif" }}
@@ -1974,6 +2308,164 @@ export default function App() {
           </div>
         </div>
       </section>
+      {/* =====================================================================
+          PROFESSIONAL RESPONSIVE WEBSITE FOOTER (Indian Banquet Heritage Style)
+         ===================================================================== */}
+      <footer className="relative bg-[#0B192C] text-[#FFF9EE] pt-16 pb-8 border-t-2 border-[#C99A43]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 3-Column Responsive Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 pb-12 border-b border-[#C99A43]/30">
+            
+            {/* Column 1: Hall Information (lg:col-span-4) */}
+            <div className="lg:col-span-4 flex flex-col items-start space-y-4">
+              {/* Logo & Hall Title */}
+              <div className="flex items-center gap-3.5">
+                <TempleLogoSVG className="w-12 h-12 shrink-0 drop-shadow-[0_0_12px_rgba(201,154,67,0.5)]" />
+                <div>
+                  <h3
+                    className="text-xl sm:text-2xl font-bold tracking-[0.08em] text-[#FFF9EE]"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    BUNTARA BHAVANA
+                  </h3>
+                  <p className="text-xs font-semibold tracking-[0.24em] text-[#C99A43] uppercase">
+                    GURUVAYANKERE
+                  </p>
+                </div>
+              </div>
+
+              {/* Refined Description */}
+              <p
+                className="text-sm sm:text-base text-gray-300 leading-relaxed"
+                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              >
+                A prestigious heritage landmark offering traditional grandeur, modern air-conditioned amenities, and warm Tulunadu hospitality for weddings, receptions, and memorable family milestones.
+              </p>
+
+              {/* Highlighted Golden Call Now Button */}
+              <div className="pt-2">
+                <a
+                  href={`tel:${siteContent.contactPhone || '+918256232456'}`}
+                  className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-[#C99A43] hover:bg-[#d8aa52] text-[#0B192C] font-bold text-sm tracking-wider uppercase transition-all shadow-md group cursor-pointer"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  <Phone className="w-4 h-4 transition-transform group-hover:scale-110" />
+                  <span>Call Now: {siteContent.contactPhone || '+91 8256 232 456'}</span>
+                </a>
+              </div>
+
+              {/* Office Hours */}
+              <div className="flex items-center gap-2.5 pt-1 text-xs text-gray-300">
+                <span className="text-gray-400">Office Hours:</span>
+                <span className="font-semibold text-[#FFF9EE] bg-[#112239] px-2.5 py-1 rounded border border-[#C99A43]/30">
+                  {siteContent.officeHours || '9:30 AM – 6:00 PM'}
+                </span>
+              </div>
+            </div>
+
+            {/* Column 2: Quick Links (lg:col-span-3) */}
+            <div className="lg:col-span-3 flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <h4
+                  className="text-base sm:text-lg font-bold tracking-[0.14em] text-[#C99A43] uppercase"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  Quick Links
+                </h4>
+                <span className="h-0.5 w-8 bg-[#C99A43]" />
+              </div>
+
+              <nav className="flex flex-col space-y-2 text-sm sm:text-base">
+                {[
+                  { label: 'Home', action: () => handleNavClick('HOME') },
+                  { label: 'About Us', action: () => handleNavClick('ABOUT') },
+                  { label: 'Our Halls', action: () => handleNavClick('OUR HALLS') },
+                  { label: 'Venue Gallery', action: () => handleNavClick('GALLERY') },
+                  {
+                    label: 'Hall Policies',
+                    action: () => {
+                      const el = document.getElementById('hall-policies-section');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  },
+                  { label: 'Reviews & Events', action: () => handleNavClick('EVENTS') },
+                  { label: 'Bookings', action: () => handleNavClick('BOOKING') },
+                  { label: 'Contact Us', action: () => handleNavClick('CONTACT') }
+                ].map((link) => (
+                  <button
+                    key={link.label}
+                    onClick={link.action}
+                    className="group relative inline-flex items-center gap-2 text-left text-gray-300 hover:text-[#C99A43] transition-colors py-1 cursor-pointer w-fit"
+                  >
+                    <span className="text-xs text-[#C99A43] opacity-60 group-hover:opacity-100 transition-opacity">❖</span>
+                    <span className="relative">
+                      {link.label}
+                      <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#C99A43] transition-all duration-300 group-hover:w-full" />
+                    </span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Column 3: Visit Us & Interactive Google Map (lg:col-span-5) */}
+            <div className="lg:col-span-5 flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <h4
+                  className="text-base sm:text-lg font-bold tracking-[0.14em] text-[#C99A43] uppercase"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  Visit Us
+                </h4>
+                <span className="h-0.5 w-8 bg-[#C99A43]" />
+              </div>
+
+              {/* Embedded Interactive Google Map inside Rounded Container with Gold Border */}
+              <div className="relative w-full h-48 sm:h-52 rounded-xl overflow-hidden border-2 border-[#C99A43]/60 shadow-lg bg-[#112239]">
+                <iframe
+                  title="Buntara Bhavana Guruvayankere Location Map"
+                  src="https://maps.google.com/maps?q=Buntara+Bhavana,+Guruvayanakere,+Belthangady,+Karnataka+574217&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+
+              {/* Address Text */}
+              <div className="mt-3.5 flex items-start gap-2.5 text-xs sm:text-sm text-gray-300">
+                <MapPin className="w-4 h-4 text-[#C99A43] shrink-0 mt-0.5" />
+                <p className="leading-snug">
+                  <strong className="text-[#FFF9EE]">X7P4+82X BUNTARA BHAVANA</strong>, Guruvayanakere, Belthangady, Karnataka 574217
+                </p>
+              </div>
+
+              {/* Open in Google Maps Link */}
+              <div className="mt-2.5">
+                <a
+                  href="https://maps.google.com/?q=Buntara+Bhavana,+Guruvayanakere,+Belthangady,+Karnataka+574217"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#C99A43] hover:text-[#d8aa52] underline underline-offset-4 transition-colors"
+                >
+                  <span>Open in Google Maps</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Bar: Gold Separator & Center-Aligned Copyright */}
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-3">
+            <p className="text-center sm:text-left">
+              &copy; {new Date().getFullYear()} <span className="text-[#C99A43] font-semibold">Buntara Bhavana – Guruvayankere</span>. All rights reserved.
+            </p>
+            <p className="text-center sm:text-right text-gray-400">
+              Designed with Tulunadu Cultural Heritage &amp; Traditional Hospitality
+            </p>
+          </div>
+        </div>
+      </footer>
+
 
       {/* =====================================================================
           MODAL A: EXPLORE HALL DETAILED VIEW (Tailored for Each of the 3 Halls)
@@ -1984,25 +2476,24 @@ export default function App() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-3xl bg-[#FFF0D5] border-2 border-[#C99A43] rounded-xl shadow-2xl overflow-hidden my-8">
-            <div className="relative h-64 sm:h-72 w-full border-b-2 border-[#C99A43]">
+          <div className="relative w-full max-w-3xl bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden my-8">
+            <div className="relative h-64 sm:h-72 w-full border-b-2 border-gray-200">
               <VenueImage
                 src={selectedHallForDetails.image}
                 fallbacks={selectedHallForDetails.fallbackImages}
-                customSrc={customPhotos[selectedHallForDetails.id]}
                 variant="hall"
                 alt={selectedHallForDetails.name}
                 className="w-full h-full object-cover"
               />
               <button
                 onClick={() => setSelectedHallForDetails(null)}
-                className="absolute top-3.5 right-3.5 p-2 rounded-full bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] hover:bg-[#741B1B] cursor-pointer"
+                className="absolute top-3.5 right-3.5 p-2 rounded-full bg-[#5A1015] text-[#FFF0D5] border border-gray-200 hover:bg-[#741B1B] cursor-pointer"
                 aria-label="Close Hall Details"
               >
                 <X className="w-5 h-5" />
               </button>
               <span
-                className="absolute bottom-3.5 left-4 px-3.5 py-1 rounded-full bg-[#741B1B] text-[#FFF0D5] border border-[#C99A43] text-xs font-bold tracking-[0.14em]"
+                className="absolute bottom-3.5 left-4 px-3.5 py-1 rounded-full bg-[#741B1B] text-[#FFF0D5] border border-gray-200 text-xs font-bold tracking-[0.14em]"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {selectedHallForDetails.category}
@@ -2019,17 +2510,17 @@ export default function App() {
 
               <div className="mt-2 flex flex-wrap items-baseline gap-2">
                 <span
-                  className="text-2xl sm:text-3xl font-extrabold text-[#48251B]"
+                  className="text-2xl sm:text-3xl font-extrabold text-gray-800"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   {selectedHallForDetails.formattedPrice}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#A64B2A]">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Official Hall Rental
                 </span>
               </div>
 
-              <p className="mt-4 text-[#48251B] leading-relaxed">
+              <p className="mt-4 text-gray-800 leading-relaxed">
                 {selectedHallForDetails.description}
               </p>
 
@@ -2046,9 +2537,9 @@ export default function App() {
                     {selectedHallForDetails.structuredFacilities.map((fac) => (
                       <div
                         key={fac.title}
-                        className="p-3.5 rounded-lg bg-[#F8E7C8] border border-[#C99A43]/80 flex items-start gap-3"
+                        className="p-3.5 rounded-lg bg-gray-50 border border-gray-200/80 flex items-start gap-3"
                       >
-                        <div className="w-8 h-8 rounded-full bg-[#741B1B] border border-[#C99A43] flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="w-8 h-8 rounded-full bg-[#741B1B] border border-gray-200 flex items-center justify-center shrink-0 mt-0.5">
                           {renderFacilityBadgeIcon(fac.icon)}
                         </div>
                         <div>
@@ -2058,7 +2549,7 @@ export default function App() {
                           >
                             {fac.title}
                           </p>
-                          <p className="text-xs text-[#48251B]/90 mt-0.5 leading-relaxed">
+                          <p className="text-xs text-gray-800/90 mt-0.5 leading-relaxed">
                             {fac.desc}
                           </p>
                         </div>
@@ -2069,17 +2560,20 @@ export default function App() {
               )}
 
               {/* Key Venue Highlights */}
-              <div className="mt-5 bg-[#F8E7C8] p-4 rounded-lg border border-[#C99A43]/60">
+              <div className="mt-5 bg-gray-50 p-4 rounded-lg border border-gray-200/60">
                 <h4
-                  className="text-xs font-bold uppercase tracking-[0.12em] text-[#741B1B] mb-2.5"
+                  className="text-xs font-bold uppercase tracking-[0.12em] text-[#741B1B] mb-2.5 flex items-center justify-between"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  Key Venue Highlights
+                  <span>Key Venue Highlights</span>
+                  <span className="text-[11px] font-normal text-gray-500 lowercase tracking-normal">
+                    {(selectedHallForDetails.highlights || []).length} highlights
+                  </span>
                 </h4>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-[#48251B]">
-                  {selectedHallForDetails.highlights.map((pt) => (
-                    <li key={pt} className="flex items-start gap-2">
-                      <span className="text-[#741B1B] font-bold">✦</span>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-800">
+                  {(selectedHallForDetails.highlights || []).map((pt, idx) => (
+                    <li key={`${pt}-${idx}`} className="flex items-start gap-2">
+                      <span className="text-[#741B1B] font-bold shrink-0">✦</span>
                       <span>{pt}</span>
                     </li>
                   ))}
@@ -2088,7 +2582,7 @@ export default function App() {
 
               {/* Suitable Functions / Events */}
               {selectedHallForDetails.suitableEvents && (
-                <div className="mt-4 bg-[#F8E7C8]/70 p-4 rounded-lg border border-[#C99A43]/50">
+                <div className="mt-4 bg-gray-50/70 p-4 rounded-lg border border-gray-200/50">
                   <h4
                     className="text-xs font-bold uppercase tracking-[0.12em] text-[#741B1B] mb-2"
                     style={{ fontFamily: "'Cinzel', serif" }}
@@ -2099,7 +2593,7 @@ export default function App() {
                     {selectedHallForDetails.suitableEvents.map((ev) => (
                       <span
                         key={ev}
-                        className="px-3 py-1 rounded-full bg-[#FFF0D5] border border-[#C99A43] text-xs font-medium text-[#48251B]"
+                        className="px-3 py-1 rounded-full bg-[#FFF0D5] border border-gray-200 text-xs font-medium text-gray-800"
                       >
                         {ev}
                       </span>
@@ -2110,7 +2604,7 @@ export default function App() {
 
               {/* Hall Timings Box (Displayed for Halls with Session Schedules) */}
               {selectedHallForDetails.timings && (
-                <div className="mt-4 p-4 rounded-lg bg-[#741B1B] text-[#FFF0D5] border border-[#C99A43]">
+                <div className="mt-4 p-4 rounded-lg bg-[#741B1B] text-[#FFF0D5] border border-gray-200">
                   <div className="flex items-center gap-2 mb-1.5">
                     <Clock className="w-4 h-4 text-[#C99A43]" />
                     <h4
@@ -2133,14 +2627,14 @@ export default function App() {
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <button
                   onClick={() => setSelectedHallForDetails(null)}
-                  className="px-5 py-2.5 rounded-md border border-[#741B1B] text-[#741B1B] font-bold text-xs tracking-widest uppercase hover:bg-[#F8E7C8] cursor-pointer"
+                  className="px-5 py-2.5 rounded-md border border-[#741B1B] text-[#741B1B] font-bold text-xs tracking-widest uppercase hover:bg-gray-50 cursor-pointer"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   Close
                 </button>
                 <button
                   onClick={() => handleOpenBooking(selectedHallForDetails.id)}
-                  className="px-6 py-2.5 rounded-md bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] font-bold text-xs tracking-widest uppercase shadow-md cursor-pointer"
+                  className="px-6 py-2.5 rounded-md bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-gray-200 font-bold text-xs tracking-widest uppercase shadow-md cursor-pointer"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   BOOK THIS HALL
@@ -2160,9 +2654,9 @@ export default function App() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-2xl bg-[#FFF0D5] border-2 border-[#C99A43] rounded-xl shadow-2xl overflow-hidden my-8">
+          <div className="relative w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden my-8">
             {/* Modal Header */}
-            <div className="bg-[#741B1B] text-[#FFF0D5] px-6 py-5 border-b-2 border-[#C99A43] flex items-center justify-between">
+            <div className="bg-[#741B1B] text-[#FFF0D5] px-6 py-5 border-b-2 border-gray-200 flex items-center justify-between">
               <div>
                 <p className="text-[11px] tracking-[0.2em] text-[#C99A43] uppercase font-semibold">
                   Buntara Bhavana – Guruvayankere
@@ -2176,7 +2670,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => setBookingModalOpen(false)}
-                className="p-2 rounded-full bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43]/60 hover:border-[#C99A43] cursor-pointer"
+                className="p-2 rounded-full bg-[#5A1015] text-[#FFF0D5] border border-gray-200/60 hover:border-gray-200 cursor-pointer"
                 aria-label="Close Booking Form"
               >
                 <X className="w-5 h-5" />
@@ -2187,7 +2681,7 @@ export default function App() {
             <div className="p-6 sm:p-8 max-h-[82vh] overflow-y-auto">
               {bookingSuccessData ? (
                 <div className="text-center py-4">
-                  <div className="w-16 h-16 rounded-full bg-[#741B1B] text-[#C99A43] border-2 border-[#C99A43] flex items-center justify-center mx-auto mb-4 shadow-md">
+                  <div className="w-16 h-16 rounded-full bg-[#741B1B] text-[#C99A43] border-2 border-gray-200 flex items-center justify-center mx-auto mb-4 shadow-md">
                     <CheckCircle2 className="w-9 h-9" />
                   </div>
                   <h4
@@ -2196,7 +2690,7 @@ export default function App() {
                   >
                     Booking Request Submitted
                   </h4>
-                  <p className="mt-2 text-sm sm:text-base text-[#48251B] max-w-md mx-auto">
+                  <p className="mt-2 text-sm sm:text-base text-gray-800 max-w-md mx-auto">
                     Thank you, <strong>{bookingSuccessData.customerName}</strong>. Your
                     enquiry has been recorded and remains{' '}
                     <span className="inline-block px-2.5 py-0.5 rounded bg-[#741B1B] text-[#FFF0D5] text-xs font-bold uppercase tracking-wider">
@@ -2210,32 +2704,32 @@ export default function App() {
                     </p>
                   )}
 
-                  <div className="mt-6 bg-[#F8E7C8] border border-[#C99A43] rounded-lg p-5 text-left text-sm space-y-2">
-                    <div className="flex justify-between border-b border-[#C99A43]/40 pb-2">
-                      <span className="text-[#A64B2A] font-semibold">Reference ID:</span>
+                  <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-5 text-left text-sm space-y-2">
+                    <div className="flex justify-between border-b border-gray-200/40 pb-2">
+                      <span className="text-gray-600 font-semibold">Reference ID:</span>
                       <span className="font-bold text-[#741B1B]">{bookingSuccessData.id}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#A64B2A] font-semibold">Selected Hall:</span>
+                      <span className="text-gray-600 font-semibold">Selected Hall:</span>
                       <span className="font-bold text-right">{bookingSuccessData.hallName}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#A64B2A] font-semibold">Hall Rental Price:</span>
+                      <span className="text-gray-600 font-semibold">Hall Rental Price:</span>
                       <span className="font-bold text-[#741B1B]">
                         {bookingSuccessData.rentalPrice}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#A64B2A] font-semibold">Booking Date:</span>
+                      <span className="text-gray-600 font-semibold">Booking Date:</span>
                       <span className="font-bold">{bookingSuccessData.eventDate}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#A64B2A] font-semibold">Selected Session:</span>
+                      <span className="text-gray-600 font-semibold">Selected Session:</span>
                       <span className="font-bold">{bookingSuccessData.session}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#A64B2A] font-semibold">Booking Status:</span>
-                      <span className="font-bold text-[#A64B2A]">
+                      <span className="text-gray-600 font-semibold">Booking Status:</span>
+                      <span className="font-bold text-gray-600">
                         Pending (Confirmation after Admin Approval)
                       </span>
                     </div>
@@ -2243,15 +2737,15 @@ export default function App() {
 
                   <button
                     onClick={() => setBookingModalOpen(false)}
-                    className="mt-6 px-7 py-3 rounded-md bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] font-bold text-xs tracking-widest uppercase cursor-pointer"
+                    className="mt-6 px-7 py-3 rounded-md bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-gray-200 font-bold text-xs tracking-widest uppercase cursor-pointer"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     Return to Website
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleBookingSubmit} className="space-y-4">
-                  <p className="rounded-lg border border-[#C99A43]/60 bg-[#F8E7C8] px-3 py-2 text-sm text-[#6B3A2B]">
+                <form onSubmit={handleBookingSubmit} autoComplete="off" className="space-y-4">
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900 font-medium">
                     You can submit this enquiry as a guest—no registration or sign-in required.
                   </p>
                   {bookingError && (
@@ -2263,7 +2757,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Customer Name *
                       </label>
                       <input
@@ -2274,12 +2768,12 @@ export default function App() {
                         onChange={(e) =>
                           setBookingForm({ ...bookingForm, customerName: e.target.value })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#741B1B] focus:border-[#741B1B]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Mobile Number *
                       </label>
                       <input
@@ -2290,29 +2784,34 @@ export default function App() {
                         onChange={(e) =>
                           setBookingForm({ ...bookingForm, mobileNumber: e.target.value })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                        className="w-full px-3.5 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Email Address
                       </label>
                       <input
                         type="email"
-                        placeholder="name@example.com"
+                        name="guest_contact_email"
+                        id="guest_contact_email"
+                        autoComplete="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        placeholder="abc@gmail.com"
                         value={bookingForm.emailAddress}
                         onChange={(e) =>
                           setBookingForm({ ...bookingForm, emailAddress: e.target.value })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                        className="w-full px-3.5 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Type of Function / Event *
                       </label>
                       <select
@@ -2320,7 +2819,7 @@ export default function App() {
                         onChange={(e) =>
                           setBookingForm({ ...bookingForm, eventType: e.target.value })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                        className="w-full px-3.5 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
                       >
                         <option value="Wedding">Wedding Ceremony</option>
                         <option value="Reception">Wedding Reception</option>
@@ -2340,60 +2839,135 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Select Hall & Auto-Populated Hall Rental Price */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#F8E7C8] p-3.5 rounded-lg border border-[#C99A43]">
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#741B1B] mb-1">
-                        Select Hall *
-                      </label>
-                      <select
-                        value={bookingForm.hallId}
-                        onChange={(e) =>
-                          setBookingForm({ ...bookingForm, hallId: e.target.value })
-                        }
-                        className="w-full px-3 py-2.5 rounded-md bg-[#FFF0D5] border border-[#C99A43] text-[#48251B] font-semibold focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
-                      >
-                        {hallsData.map((h) => (
-                          <option key={h.id} value={h.id}>
-                            {h.name} ({h.category})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
+                  {/* Notice: 3 Separate Halls in One Building */}
+                  <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50/40 rounded-xl border border-amber-200 text-xs text-amber-950 flex items-start gap-2.5">
+                    <Building2 className="w-4 h-4 text-[#C99A43] shrink-0 mt-0.5" />
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#741B1B] mb-1">
-                        Hall Rental Price
-                      </label>
-                      <div
-                        className="w-full px-3.5 py-2 rounded-md bg-[#741B1B] text-[#FFF0D5] border border-[#C99A43] font-bold text-lg text-center"
-                        style={{ fontFamily: "'Cinzel', serif" }}
-                      >
-                        {selectedHallObj.formattedPrice}
-                      </div>
+                      <strong className="text-[#741B1B] uppercase tracking-wider block mb-0.5 font-bold">
+                        3 Independent Halls Inside Buntara Bhavana Building
+                      </strong>
+                      All three halls are distinct spaces located within the same Buntara Bhavana complex. Different halls can be reserved simultaneously by different guests for separate events on the same date.
+                    </div>
+                  </div>
+
+                  {/* Visual 3-Hall Interactive Selector with Live Date Availability */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-2">
+                      Choose Hall Space (1 of 3) *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {hallsData.map((h) => {
+                        const isSelected = bookingForm.hallId === h.id;
+                        const isHallBookedOnDate = bookingForm.eventDate
+                          ? approvedBookings.some((b) => {
+                              const matchHall = b.hallId === h.id;
+                              const matchDate = b.date === bookingForm.eventDate;
+                              const matchStatus = b.status
+                                ? ['pending', 'approved'].includes(b.status.toLowerCase())
+                                : true;
+                              return matchHall && matchDate && matchStatus;
+                            })
+                          : false;
+
+                        const hallNumLabel = h.hallTag || (h.id === 'malady-tunga' ? 'Hall 1' : h.id === 'kaashi-shetty' ? 'Hall 2' : 'Hall 3');
+
+                        return (
+                          <button
+                            key={h.id}
+                            type="button"
+                            onClick={() => setBookingForm({ ...bookingForm, hallId: h.id })}
+                            className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                              isSelected
+                                ? 'border-[#741B1B] bg-[#741B1B]/5 ring-2 ring-[#741B1B]'
+                                : 'border-gray-200 bg-white hover:border-[#C99A43] hover:bg-gray-50'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between gap-1 mb-1.5">
+                                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#0B192C] text-[#F3CF7A] border border-[#C99A43]/50">
+                                  {hallNumLabel}
+                                </span>
+                                <span className="text-xs font-bold text-[#741B1B]" style={{ fontFamily: "'Cinzel', serif" }}>
+                                  {h.formattedPrice}
+                                </span>
+                              </div>
+                              <p className="font-bold text-xs text-gray-900 line-clamp-2 leading-tight">
+                                {h.name}
+                              </p>
+                              <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+                                {h.category}
+                              </p>
+                            </div>
+
+                            {/* Dynamic per-hall status if a date is picked */}
+                            {bookingForm.eventDate && (
+                              <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
+                                {isHallBookedOnDate ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                                    <AlertCircle className="w-3 h-3 text-red-600 shrink-0" />
+                                    Booked
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                    Available
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-gray-400">
+                                  {isSelected ? 'Selected' : 'Click to select'}
+                                </span>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* Date, Session Selection & Live Availability Indicator */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Booking Date *
                       </label>
-                      <input
-                        type="date"
-                        required
-                        min={new Date().toISOString().split('T')[0]}
-                        value={bookingForm.eventDate}
-                        onChange={(e) =>
-                          setBookingForm({ ...bookingForm, eventDate: e.target.value })
-                        }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
-                      />
+                      <div
+                        onClick={handleOpenDatePicker}
+                        className="relative flex items-center cursor-pointer group"
+                      >
+                        <input
+                          ref={bookingDateInputRef}
+                          type="date"
+                          required
+                          min={todayDateString}
+                          value={bookingForm.eventDate}
+                          onChange={(e) =>
+                            setBookingForm({ ...bookingForm, eventDate: e.target.value })
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            try {
+                              e.currentTarget.showPicker?.();
+                            } catch {}
+                          }}
+                          onFocus={(e) => {
+                            try {
+                              e.currentTarget.showPicker?.();
+                            } catch {}
+                          }}
+                          style={{ colorScheme: 'light' }}
+                          className="w-full relative pl-3.5 pr-10 py-2.5 rounded-md bg-gray-50 border border-gray-300 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#741B1B] cursor-pointer group-hover:border-[#C99A43] transition-colors"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute right-3 flex items-center justify-center text-[#C99A43] group-hover:text-[#741B1B] transition-colors"
+                        >
+                          <Calendar className="w-4 h-4" />
+                        </div>
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Session Selection *
                       </label>
                       <select
@@ -2401,7 +2975,7 @@ export default function App() {
                         onChange={(e) =>
                           setBookingForm({ ...bookingForm, session: e.target.value })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                        className="w-full px-3.5 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
                       >
                         <option value="Morning Session">
                           {selectedHallObj.id === 'arvaguthu-mini'
@@ -2425,26 +2999,26 @@ export default function App() {
                   {/* Live Date Availability Check Feedback */}
                   {selectedSlotStatus && (
                     <div
-                      className={`px-3.5 py-2 rounded-md text-xs font-semibold flex items-center gap-2 border ${
+                      className={`px-3.5 py-2.5 rounded-md text-xs font-semibold flex items-center gap-2 border ${
                         selectedSlotStatus === 'available'
                           ? 'bg-emerald-950/10 border-emerald-800/40 text-emerald-900'
-                          : 'bg-[#741B1B]/10 border-[#741B1B] text-[#741B1B]'
+                          : 'bg-red-950/10 border-red-700/40 text-red-800'
                       }`}
                     >
                       {selectedSlotStatus === 'available' ? (
                         <>
                           <CheckCircle2 className="w-4 h-4 text-emerald-800 shrink-0" />
                           <span>
-                            Date Available: {selectedHallObj.name} is open for enquiry on{' '}
+                            <strong>Hall is available:</strong> {selectedHallObj.name} is open for booking on{' '}
                             {bookingForm.eventDate} ({bookingForm.session}).
                           </span>
                         </>
                       ) : (
                         <>
-                          <AlertCircle className="w-4 h-4 text-[#741B1B] shrink-0" />
+                          <AlertCircle className="w-4 h-4 text-red-700 shrink-0" />
                           <span>
-                            Already Approved: This hall is already booked on{' '}
-                            {bookingForm.eventDate} ({bookingForm.session}).
+                            <strong>This hall is already booked on the selected date:</strong> {selectedHallObj.name} is booked on{' '}
+                            {bookingForm.eventDate}. Please select another date or choose a different hall.
                           </span>
                         </>
                       )}
@@ -2453,7 +3027,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                         Number of Guests
                       </label>
                       <input
@@ -2464,19 +3038,19 @@ export default function App() {
                         onChange={(e) =>
                           setBookingForm({ ...bookingForm, numberOfGuests: e.target.value })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                        className="w-full px-3.5 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
                       />
                     </div>
 
                     <div className="flex items-end">
-                      <p className="text-xs text-[#A64B2A] italic pb-2">
+                      <p className="text-xs text-gray-600 italic pb-2">
                         Timings and availability are finalized upon management confirmation.
                       </p>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#48251B] mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-800 mb-1">
                       Additional Requirements / Message
                     </label>
                     <textarea
@@ -2486,20 +3060,25 @@ export default function App() {
                       onChange={(e) =>
                         setBookingForm({ ...bookingForm, additionalMessage: e.target.value })
                       }
-                      className="w-full px-3.5 py-2 rounded-md bg-[#F8E7C8] border border-[#C99A43] text-[#48251B] focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
+                      className="w-full px-3.5 py-2 rounded-md bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#741B1B]"
                     />
                   </div>
 
                   <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <p className="text-xs text-[#A64B2A] italic">
+                    <p className="text-xs text-gray-600 italic">
                       * Booking remains Pending until approved by Buntara Bhavana administration.
                     </p>
                     <button
                       type="submit"
-                      className="w-full sm:w-auto px-7 py-3 rounded-md bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] font-bold text-xs tracking-[0.12em] uppercase shadow-md cursor-pointer"
+                      disabled={selectedSlotStatus === 'unavailable'}
+                      className={`w-full sm:w-auto px-7 py-3 rounded-md font-bold text-xs tracking-[0.12em] uppercase shadow-md transition-all ${
+                        selectedSlotStatus === 'unavailable'
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed border border-gray-300 opacity-60'
+                          : 'bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-gray-200 cursor-pointer'
+                      }`}
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      SUBMIT ENQUIRY
+                      {selectedSlotStatus === 'unavailable' ? 'HALL NOT AVAILABLE' : 'SUBMIT ENQUIRY'}
                     </button>
                   </div>
                 </form>
@@ -2518,9 +3097,9 @@ export default function App() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-4xl bg-[#FFF0D5] border-2 border-[#C99A43] rounded-xl shadow-2xl overflow-hidden my-8">
+          <div className="relative w-full max-w-4xl bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden my-8">
             {/* Modal Header */}
-            <div className="bg-[#741B1B] text-[#FFF0D5] px-6 py-4 border-b-2 border-[#C99A43] flex items-center justify-between">
+            <div className="bg-[#741B1B] text-[#FFF0D5] px-6 py-4 border-b-2 border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <span className="text-[#C99A43]">✦</span>
                 <h3
@@ -2536,7 +3115,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => setActiveInfoModal(null)}
-                className="p-2 rounded-full bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43]/60 hover:border-[#C99A43] cursor-pointer"
+                className="p-2 rounded-full bg-[#5A1015] text-[#FFF0D5] border border-gray-200/60 hover:border-gray-200 cursor-pointer"
                 aria-label="Close Dialog"
               >
                 <X className="w-5 h-5" />
@@ -2547,7 +3126,7 @@ export default function App() {
             <div className="p-6 sm:p-8 max-h-[78vh] overflow-y-auto">
               {/* ABOUT VIEW */}
               {activeInfoModal === 'about' && (
-                <div className="space-y-4 text-[#48251B] leading-relaxed">
+                <div className="space-y-4 text-gray-800 leading-relaxed">
                   <div className="flex items-center gap-3">
                     <Info className="w-6 h-6 text-[#741B1B]" />
                     <h4
@@ -2565,16 +3144,16 @@ export default function App() {
               {/* FACILITIES VIEW (Strictly the 6 Confirmed Facilities Only) */}
               {activeInfoModal === 'facilities' && (
                 <div>
-                  <p className="text-sm sm:text-base text-[#48251B] mb-6">
+                  <p className="text-sm sm:text-base text-gray-800 mb-6">
                     {siteContent.facilitiesIntro}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {facilitiesData.map(({ id, title, subtitle, description, icon: Icon }) => (
                       <div
                         key={id}
-                        className="p-4 rounded-lg bg-[#F8E7C8] border border-[#C99A43] flex items-start gap-3.5"
+                        className="p-4 rounded-lg bg-gray-50 border border-gray-200 flex items-start gap-3.5"
                       >
-                        <div className="w-11 h-11 rounded-full bg-[#741B1B] text-[#C99A43] border border-[#C99A43] flex items-center justify-center shrink-0">
+                        <div className="w-11 h-11 rounded-full bg-[#741B1B] text-[#C99A43] border border-gray-200 flex items-center justify-center shrink-0">
                           <Icon className="w-5 h-5" />
                         </div>
                         <div>
@@ -2584,10 +3163,10 @@ export default function App() {
                           >
                             {title}
                           </h4>
-                          <p className="text-xs font-semibold text-[#A64B2A] mt-0.5">
+                          <p className="text-xs font-semibold text-gray-600 mt-0.5">
                             {subtitle}
                           </p>
-                          <p className="text-xs sm:text-sm text-[#48251B]/90 mt-1.5 leading-relaxed">
+                          <p className="text-xs sm:text-sm text-gray-800/90 mt-1.5 leading-relaxed">
                             {description}
                           </p>
                         </div>
@@ -2607,8 +3186,8 @@ export default function App() {
                         Explore our venue spaces at Guruvayankere
                       </span>
                     </div>
-                    <span className="text-xs text-[#A64B2A]">
-                      Admin-managed venue photos are shown here.
+                    <span className="text-xs text-gray-600">
+                      Venue photos and galleries managed by administration.
                     </span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2637,12 +3216,11 @@ export default function App() {
                     ].map((photo) => (
                       <div
                         key={photo.label}
-                        className="rounded-lg overflow-hidden border-2 border-[#C99A43] bg-[#F8E7C8] flex flex-col justify-between"
+                        className="rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50 flex flex-col justify-between"
                       >
                         <VenueImage
                           src={photo.img}
                           fallbacks={photo.fallbacks}
-                          customSrc={customPhotos[photo.key]}
                           variant={photo.variant}
                           alt={photo.label}
                           className="w-full h-48 object-cover"
@@ -2654,17 +3232,7 @@ export default function App() {
                           >
                             {photo.label}
                           </p>
-                          <label className="shrink-0 px-2.5 py-1 rounded bg-[#741B1B] hover:bg-[#5A1015] text-[#FFF0D5] border border-[#C99A43] text-[10px] font-bold uppercase tracking-wider cursor-pointer">
-                            Load Photo
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) =>
-                                handlePhotoUpload(photo.key, e.target.files?.[0])
-                              }
-                            />
-                          </label>
+                          
                         </div>
                       </div>
                     ))}
@@ -2688,7 +3256,7 @@ export default function App() {
                     {(siteContent.events || []).map((ev) => (
                       <div
                         key={ev.title}
-                        className="p-4 rounded-lg bg-[#F8E7C8] border border-[#C99A43]"
+                        className="p-4 rounded-lg bg-gray-50 border border-gray-200"
                       >
                         <h5
                           className="font-bold text-[#741B1B]"
@@ -2696,7 +3264,7 @@ export default function App() {
                         >
                           {ev.title}
                         </h5>
-                        <p className="mt-1.5 text-[#48251B]/90">{ev.desc}</p>
+                        <p className="mt-1.5 text-gray-800/90">{ev.desc}</p>
                       </div>
                     ))}
                   </div>
@@ -2705,8 +3273,8 @@ export default function App() {
 
               {/* CONTACT VIEW */}
               {activeInfoModal === 'contact' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-[#48251B]">
-                  <div className="bg-[#F8E7C8] p-5 rounded-lg border border-[#C99A43] space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-800">
+                  <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 space-y-3">
                     <h4
                       className="text-base font-bold text-[#741B1B]"
                       style={{ fontFamily: "'Cinzel', serif" }}
@@ -2735,7 +3303,7 @@ export default function App() {
                     </p>
                   </div>
 
-                  <div className="bg-[#741B1B] text-[#FFF0D5] p-5 rounded-lg border-2 border-[#C99A43] flex flex-col justify-between">
+                  <div className="bg-[#741B1B] text-[#FFF0D5] p-5 rounded-lg border-2 border-gray-200 flex flex-col justify-between">
                     <div>
                       <h4
                         className="text-base font-bold text-[#C99A43]"
@@ -2751,7 +3319,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => handleOpenBooking('malady-tunga')}
-                      className="mt-5 w-full py-3 rounded-md bg-[#C99A43] hover:bg-[#d8aa52] text-[#48251B] font-bold text-xs tracking-widest uppercase cursor-pointer"
+                      className="mt-5 w-full py-3 rounded-md bg-[#C99A43] hover:bg-[#d8aa52] text-gray-800 font-bold text-xs tracking-widest uppercase cursor-pointer"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       OPEN BOOKING ENQUIRY
@@ -2763,6 +3331,114 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* =====================================================================
+          HOME PAGE ENTRY "BOOK NOW" POP-UP MODAL (Royal Navy & Gold Theme)
+         ===================================================================== */}
+      {entryPopUpOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setEntryPopUpOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-lg bg-[#0B192C] text-[#FFF9EE] rounded-2xl border-2 border-[#C99A43] shadow-[0_20px_60px_rgba(0,0,0,0.8)] p-6 sm:p-8 text-center animate-scaleUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button Top Right */}
+            <button
+              onClick={() => setEntryPopUpOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Sacred Temple Logo */}
+            <div className="flex justify-center mb-3">
+              <TempleLogoSVG className="w-14 h-14 drop-shadow-[0_0_16px_rgba(201,154,67,0.55)]" />
+            </div>
+
+            <p
+              className="text-xs font-semibold tracking-[0.25em] text-[#C99A43] uppercase mb-1"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              Namaskara • Welcome to
+            </p>
+
+            <h3
+              className="text-2xl sm:text-3xl font-bold text-[#FFF9EE] tracking-wide mb-3"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              BUNTARA BHAVANA
+            </h3>
+
+            <div className="flex justify-center mb-4">
+              <GoldOrnamentalDivider />
+            </div>
+
+            <p
+              className="text-base sm:text-lg text-gray-200 leading-relaxed mb-6"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            >
+              Plan your grand weddings, sacred muhurthams, and cherished family gatherings in our prestigious air-conditioned and traditional banquet halls in Guruvayankere.
+            </p>
+
+            {/* Prominent Golden Book Now CTA */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  setEntryPopUpOpen(false);
+                  handleOpenBooking('malady-tunga');
+                }}
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#C99A43] hover:bg-[#d8aa52] text-[#0B192C] font-bold text-sm tracking-[0.14em] uppercase rounded-lg shadow-lg border border-[#FFF0D5]/50 transition-all transform hover:scale-[1.02] cursor-pointer"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                Book Now
+              </button>
+              <button
+                onClick={() => setEntryPopUpOpen(false)}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-lg border border-gray-400/40 text-gray-300 hover:text-white hover:border-gray-200 text-xs sm:text-sm tracking-wider uppercase transition-colors cursor-pointer"
+              >
+                Explore Venue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          VIEW-ONLY GALLERY LIGHTBOX PREVIEW MODAL
+         ===================================================================== */}
+      {activeLightboxImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setActiveLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full bg-[#0B192C] text-[#FFF9EE] rounded-2xl overflow-hidden border-2 border-[#C99A43] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#C99A43]/40 bg-[#112239]">
+              <h3 className="text-base sm:text-lg font-bold text-[#FFF9EE]" style={{ fontFamily: "'Cinzel', serif" }}>
+                {activeLightboxImage.title}
+              </h3>
+              <button
+                onClick={() => setActiveLightboxImage(null)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-[75vh] flex items-center justify-center bg-black/60 p-4">
+              <img
+                src={activeLightboxImage.imageUrl}
+                alt={activeLightboxImage.title}
+                className="max-h-[70vh] w-auto max-w-full object-contain rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
